@@ -1,3 +1,5 @@
 /bin/
 /target/
 .settings
+release
+src/main/resources/com/bitplan/dragtop/*.png

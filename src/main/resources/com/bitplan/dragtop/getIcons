@@ -1,0 +1,14 @@
+#!/bin/bash
+# http://www.softicons.com/toolbar-icons/fatcow-hosting-icons-by-fatcow
+# WF 2013-08-19
+for ext in jpg ppt xls doc txt gif pdf png tif mid bat iso aif dwg rar mp4 zip mov mpg bmp jar rtf eps mdb ddll 7z exe pps ifo mpeg jpeg bin eps cdr htm html gz wmv flv m4v tgz eml log divx vob svg
+do
+ if [ ! -f file_extension_${ext}.png ]
+ then
+   wget http://files.softicons.com/download/toolbar-icons/fatcow-hosting-icons-by-fatcow/png/32/file_extension_$ext.png
+ fi
+ if [ -f file_extension_${ext}.png ]
+ then
+   mv file_extension_${ext}.png ${ext}32x32.png
+ fi
+done

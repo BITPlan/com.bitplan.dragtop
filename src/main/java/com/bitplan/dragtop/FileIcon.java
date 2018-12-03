@@ -23,6 +23,7 @@ package com.bitplan.dragtop;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.swing.filechooser.FileSystemView;
@@ -30,84 +31,120 @@ import javax.swing.filechooser.FileSystemView;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
+/**
+ * get Icons for files
+ * 
+ * @author wf
+ *
+ */
 public class FileIcon {
-	static HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<String, Image>();
+  public static boolean debug=true;
+  static HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<String, Image>();
 
-	/**
-	 * get the file extension for the given filename
-	 * 
-	 * @param fname
-	 * @return the extension
-	 */
-	private static String getFileExt(String fname) {
-		String ext = ".";
-		int p = fname.lastIndexOf('.');
-		if (p >= 0) {
-			ext = fname.substring(p);
-		}
-		return ext.toLowerCase();
-	}
+  /**
+   * get the file extension for the given filename
+   * e.g. "pdf" 
+   * 
+   * @param fname
+   * @return the extension
+   */
+  private static String getFileExt(String fname) {
+    String ext = "";
+    int p = fname.lastIndexOf('.');
+    if (p >= 0) {
+      ext = fname.substring(p+1);
+    }
+    return ext.toLowerCase();
+  }
 
-	private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
-		javax.swing.Icon icon = null;
-		switch (OsCheck.getOperatingSystemType()) {
-		
-		case MacOS:
-			final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-			icon = fc.getUI().getFileView(fc).getIcon(file);
-			break;
-		default:
-		// case Windows:
-			FileSystemView view = FileSystemView.getFileSystemView();
-			icon = view.getSystemIcon(file);
-			break;
-		}
-		return icon;
-	}
+  /**
+   * get the Swing Icon from the file system
+   * @param file
+   * @return the icon
+   */
+  private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
+    javax.swing.Icon icon = null;
+    switch (OsCheck.getOperatingSystemType()) {
 
-	/**
-	 * get the Icon image for the given file name
-	 * 
-	 * @param fname
-	 * @return - the Image
-	 */
-	public static Image getFileIcon(String fname) {
-		final String ext = getFileExt(fname);
+    case MacOS:
+      final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+      icon = fc.getUI().getFileView(fc).getIcon(file);
+      break;
+    default:
+      // case Windows:
+      FileSystemView view = FileSystemView.getFileSystemView();
+      icon = view.getSystemIcon(file);
+      break;
+    }
+    return icon;
+  }
 
-		Image fileIcon = mapOfFileExtToSmallIcon.get(ext);
-		if (fileIcon == null) {
+  /**
+   * get the file icon for the given file
+   * 
+   * @param file
+   * @return the icon
+   */
+  public static Image getFileIcon(File file) {
+    final String ext = getFileExt(file.getName());
+    Image image = getFileIcon(ext);
+    return image;
+  }
 
-			javax.swing.Icon jswingIcon = null;
+  /**
+   * get the Icon image for the given file extension
+   * 
+   * @param ext
+   * @return - the Image
+   * @throws Exception
+   */
+  public static Image getFileIcon(String ext) {
 
-			File file = new File(fname);
-			if (file.exists()) {
-				jswingIcon = getJSwingIconFromFileSystem(file);
-			} else {
-				File tempFile = null;
-				try {
-					tempFile = File.createTempFile("icon", ext);
-					jswingIcon = getJSwingIconFromFileSystem(tempFile);
-				} catch (IOException ignored) {
-					// Cannot create temporary file.
-				} finally {
-					if (tempFile != null)
-						tempFile.delete();
-				}
-			}
+    Image fileIcon = mapOfFileExtToSmallIcon.get(ext);
+    if (fileIcon == null) {
+      try {
+        // first try getting icon from jar file
+        URL url = FileIcon.class.getResource(ext + "32x32.png");
+        // BufferedImage awtImg = ImageIO.read(url);
+        // Image fxImg = SwingFXUtils.toFXImage(awtImg, null);
+        fileIcon = new Image(url.openStream());
+      } catch (Exception e) {
 
-			if (jswingIcon != null) {
-				fileIcon = jswingIconToImage(jswingIcon);
-				mapOfFileExtToSmallIcon.put(ext, fileIcon);
-			}
-		}
+      }
+      if (fileIcon == null) {
+        javax.swing.Icon jswingIcon = null;
 
-		return fileIcon;
-	}
+        File tempFile = null;
+        try {
+          tempFile = File.createTempFile("icon", "."+ext);
+          jswingIcon = getJSwingIconFromFileSystem(tempFile);
+        } catch (IOException ignored) {
+          // Cannot create temporary file.
+        } finally {
+          if (tempFile != null)
+            tempFile.delete();
+        }
 
-	private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
-		BufferedImage bufferedImage = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(),
-				BufferedImage.TYPE_INT_ARGB);
-		jswingIcon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);
-		return SwingFXUtils.toFXImage(bufferedImage, null);
-	}
+        if (jswingIcon != null) {
+          fileIcon = jswingIconToImage(jswingIcon);
+          mapOfFileExtToSmallIcon.put(ext, fileIcon);
+        }
+      }
+    }
+
+    return fileIcon;
+  }
+
+  /**
+   * convert a swing Icon to an image
+   * 
+   * @param jswingIcon
+   * @return the Image
+   */
+  private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
+    BufferedImage bufferedImage = new BufferedImage(jswingIcon.getIconWidth(),
+        jswingIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    jswingIcon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);
+    return SwingFXUtils.toFXImage(bufferedImage, null);
+  }
 }

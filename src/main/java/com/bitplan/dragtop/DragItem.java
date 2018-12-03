@@ -45,6 +45,7 @@ public class DragItem extends Label {
 
   private double dragSceneY;
   private double dragSceneX;
+  double iconSize=32;
 
   /**
    * create a drag item for the given file
@@ -56,11 +57,11 @@ public class DragItem extends Label {
     if (debug) {
       LOGGER.log(Level.INFO,"Dragitem for file "+filePath+" created");
     }
-    image = FileIcon.getFileIcon(filePath);
+    image = FileIcon.getFileIcon(file);
     ImageView imageView = new ImageView();
     imageView.setImage(image);
-    imageView.setScaleX(2.0);
-    imageView.setScaleY(2.0);
+    imageView.setScaleX(iconSize/image.getWidth());
+    imageView.setScaleY(iconSize/image.getHeight());
 
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     setGraphic(imageView);

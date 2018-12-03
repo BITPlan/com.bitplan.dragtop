@@ -20,19 +20,25 @@
 		<github.project>com.bitplan.dragtop</github.project>
 		<!-- for README.md generation -->
 		<documentation.wiki>http://wiki.bitplan.com/index.php/dragtop</documentation.wiki>
+		<!-- activate createAssembly -->
+		<assemblyMainClass>com.bitplan.dragtop.DragTop</assemblyMainClass>
 		<!-- versions of other libraries to be used -->
 	</properties>
 	<dependencies>
-	<!--  https://github.com/BITPlan/com.bitplan.javafx -->
-	 <dependency>
-      <groupId>com.bitplan.gui</groupId>
-      <artifactId>com.bitplan.javafx</artifactId>
-      <version>0.0.22</version>
-    </dependency>
+		<!-- https://github.com/BITPlan/com.bitplan.javafx -->
+		<dependency>
+			<groupId>com.bitplan.gui</groupId>
+			<artifactId>com.bitplan.javafx</artifactId>
+		</dependency>
 		<!-- JUnit testing -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
