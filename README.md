@@ -32,6 +32,8 @@ git clone https://github.com/BITPlan/com.bitplan.dragtop
 cd com.bitplan.dragtop
 mvn install
 ```
+# Credits
+Icons by FatCow http://www.softicons.com/toolbar-icons/fatcow-hosting-icons-by-fatcow
 # Version History
 | Version | date       |  changes 
 | ------: | ---------- | ------------------------

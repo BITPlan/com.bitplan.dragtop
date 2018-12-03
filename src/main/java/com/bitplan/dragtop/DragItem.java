@@ -45,7 +45,7 @@ public class DragItem extends Label {
 
   private double dragSceneY;
   private double dragSceneX;
-  double iconSize=32;
+  double iconSize=64;
 
   /**
    * create a drag item for the given file
