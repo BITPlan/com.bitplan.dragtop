@@ -13,7 +13,7 @@
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 	<name>com.bitplan.dragtop</name>
-	<description>Drag and Drop target desktop application with plugable functionality</description>
+	<description>Drag and Drop target desktop application with pluggable functionality</description>
 	<url>https://github.com/BITPlan/com.bitplan.dragtop</url>
 	<properties>
 		<!-- for parent pom to work -->
@@ -40,6 +40,18 @@
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- https://search.maven.org/artifact/org.pf4j/pf4j/2.4.0/jar -->
+		<dependency>
+			<groupId>org.pf4j</groupId>
+			<artifactId>pf4j</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.25</version>
 		</dependency>
 	</dependencies>
 	<build>

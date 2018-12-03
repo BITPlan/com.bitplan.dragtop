@@ -20,6 +20,15 @@
  */
 package com.bitplan.dragtop;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+import org.pf4j.DefaultPluginManager;
+
 import com.bitplan.javafx.WaitableApp;
 
 import javafx.application.Application;
@@ -30,46 +39,95 @@ import javafx.stage.Stage;
 
 /**
  * the DragTop
+ * 
  * @author wf
  *
  */
 public class DragTop extends WaitableApp {
-	private Scene scene;
+  private static String[] args;
 
-	public Scene getScene() {
-		return scene;
-	}
+  @Option(name = "-p", aliases = {
+      "--plugins" }, usage = "plugins\ncomma separated list of plugins to load")
+  String plugins;
+  protected CmdLineParser parser;
 
-	public void setScene(Scene scene) {
-		this.scene = scene;
-	}
+  private Scene scene;
 
-	String title="Drag & Drop Here";
-	int screenPercent=33;
-	int divX=3;
-	int divY=3;
-	
-	@Override
-	public void start(Stage stage) {
-		super.start(stage);
-		stage.setTitle(title);
-		Rectangle2D sceneBounds = super.getSceneBounds(screenPercent, divX, divY);
-		DropTarget region = new DropTarget();
-		setScene(new Scene(region, sceneBounds.getWidth(), sceneBounds.getHeight()));
-		stage.setScene(getScene());
-		scene.setFill(Color.LIGHTGRAY);
-		
-		stage.setX(super.getScreenWidth()-sceneBounds.getMinX());
-		stage.setY(super.getScreenHeight()-sceneBounds.getMinY());
-		stage.show();
-	}
+  public Scene getScene() {
+    return scene;
+  }
 
-	/**
-	 * entry point for application
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Application.launch(args);
-	}
+  public void setScene(Scene scene) {
+    this.scene = scene;
+  }
+
+  String title = "Drag & Drop Here";
+  int screenPercent = 33;
+  int divX = 3;
+  int divY = 3;
+
+  private DefaultPluginManager pluginManager;
+
+  /**
+   * parse the given Arguments
+   * 
+   * @param args
+   * @throws CmdLineException
+   */
+  public void parseArguments(String[] args) throws CmdLineException {
+    parser = new CmdLineParser(this);
+    parser.parseArgument(args);
+  }
+
+  @Override
+  public void start(Stage stage) {
+    super.start(stage);
+    setup(stage);
+    try {
+      parseArguments(args);
+      activatePlugins();
+    } catch (CmdLineException e) {
+      LOGGER.log(Level.SEVERE, e.getMessage(), e);
+    }
+  }
+
+  /**
+   * activate the plugins requested on the command line
+   */
+  public void activatePlugins() {
+    pluginManager = new DefaultPluginManager();
+
+    if (plugins != null) {
+
+      for (String plugin : plugins.split(",")) {
+        Path pluginPath = Paths.get(plugin).toAbsolutePath().normalize();
+        pluginManager.loadPlugin(pluginPath);
+      }
+    }
+    pluginManager.startPlugins();
+  }
+
+  private void setup(Stage stage) {
+    stage.setTitle(title);
+    Rectangle2D sceneBounds = super.getSceneBounds(screenPercent, divX, divY);
+    DropTarget region = new DropTarget();
+    setScene(
+        new Scene(region, sceneBounds.getWidth(), sceneBounds.getHeight()));
+    stage.setScene(getScene());
+    scene.setFill(Color.LIGHTGRAY);
+
+    stage.setX(super.getScreenWidth() - sceneBounds.getMinX());
+    stage.setY(super.getScreenHeight() - sceneBounds.getMinY());
+    stage.show();
+  }
+
+  /**
+   * entry point for application
+   * 
+   * @param args
+   */
+  public static void main(String[] args) {
+    DragTop.args = args;
+    Application.launch(args);
+  }
 }

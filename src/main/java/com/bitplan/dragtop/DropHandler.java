@@ -20,27 +20,17 @@
  */
 package com.bitplan.dragtop;
 
-import static org.junit.Assert.*;
+import java.util.function.Consumer;
 
-import org.junit.Test;
-
-import javafx.scene.image.Image;
+import org.pf4j.ExtensionPoint;
 
 /**
- * test the file icon handling
+ * handle drop events
  * @author wf
  *
  */
-public class TestIcons {
-
-  @Test
-  public void testIcons() {
-    String exts[]= {"pdf"};
-    for (String ext:exts) {
-      Image fileIcon = FileIcon.getFileIcon(ext);
-      assertEquals(32,fileIcon.getHeight(),0.01);
-      assertEquals(32,fileIcon.getWidth(),0.01);
-    }
-  }
+public interface DropHandler extends ExtensionPoint {
+  public Consumer<DragItem> getHandler();
+  public void setHandler( Consumer<DragItem> handler);
 
 }
