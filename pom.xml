@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.bitplan.pom</groupId>
+		<artifactId>com.bitplan.pom</artifactId>
+		<version>0.0.17</version>
+		<relativePath>../com.bitplan.pom/pom.xml</relativePath>
+	</parent>
+	<groupId>com.bitplan.dragtop</groupId>
+	<artifactId>com.bitplan.dragtop</artifactId>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
+	<name>com.bitplan.dragtop</name>
+	<description>Drag and Drop target desktop application with plugable functionality</description>
+	<url>https://github.com/BITPlan/com.bitplan.dragtop</url>
+	<properties>
+		<!-- for parent pom to work -->
+		<github.project>com.bitplan.dragtop</github.project>
+		<!-- for README.md generation -->
+		<documentation.wiki>http://wiki.bitplan.com/index.php/dragtop</documentation.wiki>
+		<!-- versions of other libraries to be used -->
+	</properties>
+	<dependencies>
+	<!--  https://github.com/BITPlan/com.bitplan.javafx -->
+	 <dependency>
+      <groupId>com.bitplan.gui</groupId>
+      <artifactId>com.bitplan.javafx</artifactId>
+      <version>0.0.22</version>
+    </dependency>
+		<!-- JUnit testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+	</build>
+</project>
