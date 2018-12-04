@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -225,20 +224,6 @@ public class DropTarget extends Pane {
     }
     pluginManager.startPlugins();
     showStartedPlugins();
-    DropHandler workAroundHandler =  new DropHandler() {
-      Consumer<DragItem> handler=null;
-      @Override
-      public Consumer<DragItem> getHandler() {
-        return handler;
-      }
-
-      @Override
-      public void setHandler(Consumer<DragItem> handler) {
-        this.handler=handler;
-      }
-      
-    };
-    workAroundHandler.setHandler(null);
   }
 
   /**

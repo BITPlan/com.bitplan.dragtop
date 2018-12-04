@@ -34,7 +34,8 @@ cd com.bitplan.dragtop
 mvn install
 ```
 # Credits
-Icons by FatCow http://www.softicons.com/toolbar-icons/fatcow-hosting-icons-by-fatcow
+* Icons by FatCow http://www.softicons.com/toolbar-icons/fatcow-hosting-icons-by-fatcow
+* Plugin Framework for Java (PF4J) https://github.com/pf4j/pf4j
 # Version History
 | Version | date       |  changes 
 | ------: | ---------- | ------------------------
