@@ -136,6 +136,25 @@ public class DropTarget extends Pane {
       event.consume();
     }
   };
+  
+  /**
+   * add a dragItem at the given x and y position
+   * @param dragItem
+   * @param x
+   * @param y
+   */
+  public void addDragItem(DragItem dragItem, double x, double y) {
+    dragItems.add(dragItem);
+    target.getChildren().add(dragItem);
+    dragItem.setLayoutX(x);
+    dragItem.setLayoutY(y);
+    List<DropHandler> dropHandlers = pluginManager
+        .getExtensions(DropHandler.class);
+    if (dropHandlers.size() > 0)
+      for (DropHandler dropHandler : dropHandlers) {
+        dropHandler.getHandler().accept(dragItem);
+      }
+  }
 
   EventHandler<DragEvent> onDragDropped = new EventHandler<DragEvent>() {
     public void handle(DragEvent event) {
@@ -146,20 +165,18 @@ public class DropTarget extends Pane {
       /* if there is file data on dragboard, read it and use it */
       Dragboard db = event.getDragboard();
       boolean success = false;
+      double x=event.getX();
+      double y=event.getY();
       if (db.hasFiles()) {
         success = true;
         for (File file : db.getFiles()) {
           DragItem dragItem = new DragItem(file);
-          dragItems.add(dragItem);
-          target.getChildren().add(dragItem);
-          dragItem.setLayoutX(event.getX());
-          dragItem.setLayoutY(event.getY());
-          List<DropHandler> dropHandlers = pluginManager
-              .getExtensions(DropHandler.class);
-          if (dropHandlers.size() > 0)
-            for (DropHandler dropHandler : dropHandlers) {
-              dropHandler.getHandler().accept(dragItem);
-            }
+          addDragItem(dragItem,x,y);
+          x+=dragItem.iconSize;
+          if (x>DropTarget.this.getWidth()) {
+            x=0;
+            y+=dragItem.iconSize;
+          }
         }
         setFill(DRAG_DROPPED_COLOR);
       }
