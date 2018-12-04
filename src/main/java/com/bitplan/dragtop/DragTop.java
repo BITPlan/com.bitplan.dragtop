@@ -20,22 +20,9 @@
  */
 package com.bitplan.dragtop;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.logging.Level;
-
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.pf4j.DefaultPluginManager;
 
-import com.bitplan.javafx.WaitableApp;
-
-import javafx.application.Application;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
+import com.bitplan.javafx.Main;
 
 /**
  * the DragTop
@@ -43,91 +30,47 @@ import javafx.stage.Stage;
  * @author wf
  *
  */
-public class DragTop extends WaitableApp {
-  private static String[] args;
+public class DragTop extends Main {
 
   @Option(name = "-p", aliases = {
       "--plugins" }, usage = "plugins\ncomma separated list of plugins to load")
   String plugins;
-  protected CmdLineParser parser;
 
-  private Scene scene;
-
-  public Scene getScene() {
-    return scene;
-  }
-
-  public void setScene(Scene scene) {
-    this.scene = scene;
-  }
-
-  String title = "Drag & Drop Here";
-  int screenPercent = 33;
-  int divX = 3;
-  int divY = 3;
-
-  private DefaultPluginManager pluginManager;
-
-  /**
-   * parse the given Arguments
-   * 
-   * @param args
-   * @throws CmdLineException
-   */
-  public void parseArguments(String[] args) throws CmdLineException {
-    parser = new CmdLineParser(this);
-    parser.parseArgument(args);
+  @Override
+  public String getSupportEMail() {
+    return "support@bitplan.com";
   }
 
   @Override
-  public void start(Stage stage) {
-    super.start(stage);
-    setup(stage);
-    try {
-      parseArguments(args);
-      activatePlugins();
-    } catch (CmdLineException e) {
-      LOGGER.log(Level.SEVERE, e.getMessage(), e);
+  public String getSupportEMailPreamble() {
+    return "Dear DragTop user,";
+  }
+
+  @Override
+  public void work() throws Exception {
+    if (showVersion)
+      this.showVersion();
+    if (showHelp)
+      this.showHelp();
+    else {
+      DragTopApp.testMode = testMode;
+      DragTopApp.debug=debug;
+      DragTopApp.toolkitInit();
+      DragTopApp app=new DragTopApp(plugins);
+     
+      app.show();
+      app.waitOpen();
+      app.waitClose();
     }
   }
-
-  /**
-   * activate the plugins requested on the command line
-   */
-  public void activatePlugins() {
-    pluginManager = new DefaultPluginManager();
-
-    if (plugins != null) {
-
-      for (String plugin : plugins.split(",")) {
-        Path pluginPath = Paths.get(plugin).toAbsolutePath().normalize();
-        pluginManager.loadPlugin(pluginPath);
-      }
-    }
-    pluginManager.startPlugins();
-  }
-
-  private void setup(Stage stage) {
-    stage.setTitle(title);
-    Rectangle2D sceneBounds = super.getSceneBounds(screenPercent, divX, divY);
-    DropTarget region = new DropTarget();
-    setScene(
-        new Scene(region, sceneBounds.getWidth(), sceneBounds.getHeight()));
-    stage.setScene(getScene());
-    scene.setFill(Color.LIGHTGRAY);
-
-    stage.setX(super.getScreenWidth() - sceneBounds.getMinX());
-    stage.setY(super.getScreenHeight() - sceneBounds.getMinY());
-    stage.show();
-  }
-
+  
   /**
    * entry point for application
    * 
    * @param args
    */
   public static void main(String[] args) {
-    DragTop.args = args;
-    Application.launch(args);
+    DragTop dragtop=new DragTop();
+    dragtop.maininstance(args);
   }
 }

@@ -1,5 +1,5 @@
 ### com.bitplan.dragtop
-[Drag and Drop target desktop application with plugable functionality](http://wiki.bitplan.com/index.php/dragtop) 
+[Drag and Drop target desktop application with pluggable functionality](http://wiki.bitplan.com/index.php/dragtop)
 
 [![Travis (.org)](https://img.shields.io/travis/BITPlan/com.bitplan.dragtop.svg)](https://travis-ci.org/BITPlan/com.bitplan.dragtop)
 [![Maven Central](https://img.shields.io/maven-central/v/com.bitplan.dragtop/com.bitplan.dragtop.svg)](https://search.maven.org/artifact/com.bitplan.dragtop/com.bitplan.dragtop/0.0.1/jar)
@@ -17,6 +17,7 @@
 
 Maven dependency
 ```xml
+<!-- Drag and Drop target desktop application with pluggable functionality http://wiki.bitplan.com/index.php/dragtop -->
 <dependency>
   <groupId>com.bitplan.dragtop</groupId>
   <artifactId>com.bitplan.dragtop</artifactId>

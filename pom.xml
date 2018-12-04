@@ -23,6 +23,7 @@
 		<!-- activate createAssembly -->
 		<assemblyMainClass>com.bitplan.dragtop.DragTop</assemblyMainClass>
 		<!-- versions of other libraries to be used -->
+		<pf4j.version>2.4.0</pf4j.version>
 	</properties>
 	<dependencies>
 		<!-- https://github.com/BITPlan/com.bitplan.javafx -->
@@ -45,13 +46,13 @@
 		<dependency>
 			<groupId>org.pf4j</groupId>
 			<artifactId>pf4j</artifactId>
-			<version>2.4.0</version>
+			<version>${pf4j.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.25</version>
+			<version>1.7.5</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -21,10 +21,18 @@
 package com.bitplan.dragtop;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PluginWrapper;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.DragEvent;
@@ -43,7 +51,7 @@ import javafx.scene.paint.Color;
 public class DropTarget extends Pane {
   // prepare a LOGGER
   protected static Logger LOGGER = Logger.getLogger("com.bitplan.dragtop");
-  public static boolean debug=false;
+  public static boolean debug = false;
 
   public static Color DRAG_ENTERED_COLOR = Color.LIGHTGREEN;
   public static Color DRAG_DONE_COLOR = Color.LIGHTGRAY;
@@ -88,7 +96,8 @@ public class DropTarget extends Pane {
       Dragboard db = event.getDragboard();
       /* data is dragged over the target */
       if (debug) {
-        LOGGER.log(Level.INFO,String.format("onDragOver %s", db.getContentTypes()));
+        LOGGER.log(Level.INFO,
+            String.format("onDragOver %s", db.getContentTypes()));
       }
       /*
        * accept it only if it is not dragged from the same node and if it has a
@@ -108,7 +117,7 @@ public class DropTarget extends Pane {
     public void handle(DragEvent event) {
       /* the drag-and-drop gesture entered the target */
       if (debug) {
-        LOGGER.log(Level.INFO,"onDragEntered");
+        LOGGER.log(Level.INFO, "onDragEntered");
       }
       /* show to the user that it is an actual gesture target */
       if (event.getGestureSource() != target) {
@@ -133,7 +142,7 @@ public class DropTarget extends Pane {
     public void handle(DragEvent event) {
       /* data dropped */
       if (debug) {
-        LOGGER.log(Level.INFO,"onDragDropped");
+        LOGGER.log(Level.INFO, "onDragDropped");
       }
       /* if there is file data on dragboard, read it and use it */
       Dragboard db = event.getDragboard();
@@ -146,6 +155,12 @@ public class DropTarget extends Pane {
           target.getChildren().add(dragItem);
           dragItem.setLayoutX(event.getX());
           dragItem.setLayoutY(event.getY());
+          List<DropHandler> dropHandlers = pluginManager
+              .getExtensions(DropHandler.class);
+          if (dropHandlers.size() > 0)
+            for (DropHandler dropHandler : dropHandlers) {
+              dropHandler.getHandler().accept(dragItem);
+            }
         }
         setFill(DRAG_DROPPED_COLOR);
       }
@@ -163,7 +178,7 @@ public class DropTarget extends Pane {
     public void handle(DragEvent event) {
       /* the drag-and-drop gesture ended */
       if (debug) {
-        LOGGER.log(Level.INFO,"onDragDone");
+        LOGGER.log(Level.INFO, "onDragDone");
       }
       /* if the data was successfully moved, clear it */
       if (event.getTransferMode() == TransferMode.MOVE) {
@@ -173,6 +188,8 @@ public class DropTarget extends Pane {
       event.consume();
     }
   };
+
+  DefaultPluginManager pluginManager;
 
   /**
    * helper to get RGBCode from Color
@@ -188,6 +205,65 @@ public class DropTarget extends Pane {
 
   protected void setFill(Color color) {
     setStyle(String.format("-fx-background-color: %s;", toRGBCode(color)));
+  }
+  
+  /**
+   * activate the given plugins
+   * 
+   * @param plugins
+   */
+  public void activatePlugins(String plugins) {
+    // https://github.com/pf4j/pf4j/issues/209
+    pluginManager = new JarPluginManager(this.getClass().getClassLoader());
+
+    if (plugins != null) {
+
+      for (String plugin : plugins.split(",")) {
+        Path pluginPath = Paths.get(plugin).toAbsolutePath().normalize();
+        pluginManager.loadPlugin(pluginPath);
+      }
+    }
+    pluginManager.startPlugins();
+    showStartedPlugins();
+    DropHandler workAroundHandler =  new DropHandler() {
+      Consumer<DragItem> handler=null;
+      @Override
+      public Consumer<DragItem> getHandler() {
+        return handler;
+      }
+
+      @Override
+      public void setHandler(Consumer<DragItem> handler) {
+        this.handler=handler;
+      }
+      
+    };
+    workAroundHandler.setHandler(null);
+  }
+
+  /**
+   * show the started plugins
+   */
+  public void showStartedPlugins() {
+
+    List<PluginWrapper> startedPlugins = pluginManager.getStartedPlugins();
+
+    for (PluginWrapper plugin : startedPlugins) {
+      PluginDescriptor descriptor = plugin.getDescriptor();
+      String pluginId = plugin.getDescriptor().getPluginId();
+      String msg = String.format(
+          "Extensions added by plugin id:'%s' version:'%s' %s:", pluginId,
+          descriptor.getVersion(), descriptor.getPluginDescription());
+      if (debug)
+        LOGGER.log(Level.INFO, msg);
+      Set<String> extensionClassNames = pluginManager
+          .getExtensionClassNames(pluginId);
+      for (String extension : extensionClassNames) {
+        msg = "   " + extension;
+        if (debug)
+          LOGGER.log(Level.INFO, msg);
+      }
+    }
   }
 
 }

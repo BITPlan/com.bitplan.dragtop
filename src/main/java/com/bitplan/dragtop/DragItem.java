@@ -46,6 +46,15 @@ public class DragItem extends Label {
   private double dragSceneY;
   private double dragSceneX;
   double iconSize=64;
+  Object item;
+
+  public Object getItem() {
+    return item;
+  }
+
+  public void setItem(Object item) {
+    this.item = item;
+  }
 
   /**
    * create a drag item for the given file
@@ -53,6 +62,7 @@ public class DragItem extends Label {
    * @param file
    */
   public DragItem(File file) {
+    this.item=file;
     String filePath = file.getAbsolutePath();
     if (debug) {
       LOGGER.log(Level.INFO,"Dragitem for file "+filePath+" created");
