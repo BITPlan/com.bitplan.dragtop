@@ -20,6 +20,7 @@
  */
 package com.bitplan.dragtop;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +30,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 
 /**
  * a draggable Item
@@ -45,7 +47,7 @@ public class DragItem extends Label {
 
   private double dragSceneY;
   private double dragSceneX;
-  double iconSize=64;
+  double iconSize = 64;
   Object item;
 
   public Object getItem() {
@@ -62,25 +64,56 @@ public class DragItem extends Label {
    * @param file
    */
   public DragItem(File file) {
-    this.item=file;
+    this.item = file;
     String filePath = file.getAbsolutePath();
     if (debug) {
-      LOGGER.log(Level.INFO,"Dragitem for file "+filePath+" created");
+      LOGGER.log(Level.INFO, "Dragitem for file " + filePath + " created");
     }
     image = FileIcon.getFileIcon(file);
     ImageView imageView = new ImageView();
     imageView.setImage(image);
-    imageView.setScaleX(iconSize/image.getWidth());
-    imageView.setScaleY(iconSize/image.getHeight());
+    imageView.setScaleX(iconSize / image.getWidth());
+    imageView.setScaleY(iconSize / image.getHeight());
 
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     setGraphic(imageView);
     Tooltip tooltip = new Tooltip(filePath);
     setTooltip(tooltip);
     activateDrag();
+    setOnMouseClicked(event -> {
+      if (event.getButton().equals(MouseButton.PRIMARY)
+          && event.getClickCount() == 2) {
+        onDoubleClick();
+      }
+    });
+  }
+  
+  /**
+   * handle the given exception
+   * @param e - the exception to handle
+   */
+  public void handle(Exception e) {
+    LOGGER.log(Level.SEVERE, e.getMessage(), e);
   }
 
-  private void activateDrag() {
+  /**
+   * react on a double click
+   */
+  protected void onDoubleClick() {
+    if (item instanceof File) {
+      File file=(File) item;
+      try {
+        Desktop.getDesktop().open(file);
+      } catch (Exception e) {
+        handle(e);
+      }
+    }
+  }
+
+  /**
+   * make me draggable
+   */
+  protected void activateDrag() {
     setOnMousePressed((t) -> {
       dragSceneX = t.getSceneX();
       dragSceneY = t.getSceneY();
