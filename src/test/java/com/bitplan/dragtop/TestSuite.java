@@ -20,21 +20,16 @@
  */
 package com.bitplan.dragtop;
 
-import java.io.File;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-import javafx.scene.Node;
-
-public interface DragItem extends Draggable {
-
-  void setLayoutX(double x);
-  void setLayoutY(double y);
-
-  double getWidth();
-  double getHeight();
-  
-  public default Node getNode() {
-    return (Node) this;
-  }
-  Object getItem();
-
+@RunWith(Suite.class)
+@Suite.SuiteClasses({ TestUtils.class,TestCard.class})
+/**
+ * TestSuite for Dragtop
+ * @author wf
+ *
+ * no content necessary - annotation has info
+ */
+public class TestSuite {
 }

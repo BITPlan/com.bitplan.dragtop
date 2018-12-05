@@ -64,7 +64,7 @@ public class DragTopApp extends WaitableApp {
   private void setup(Stage stage) {
     stage.setTitle(title);
     Rectangle2D sceneBounds = super.getSceneBounds(screenPercent, divX, divY);
-    dropTarget = new DropTarget();
+    dropTarget = new DropTarget(this);
     setScene(
         new Scene(dropTarget, sceneBounds.getWidth(), sceneBounds.getHeight()));
     stage.setScene(getScene());

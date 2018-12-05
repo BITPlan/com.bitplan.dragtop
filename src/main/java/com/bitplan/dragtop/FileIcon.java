@@ -48,7 +48,7 @@ public class FileIcon {
    * @param fname
    * @return the extension
    */
-  private static String getFileExt(String fname) {
+  public static String getFileExt(String fname) {
     String ext = "";
     int p = fname.lastIndexOf('.');
     if (p >= 0) {
@@ -104,7 +104,7 @@ public class FileIcon {
     if (fileIcon == null) {
       try {
         // first try getting icon from jar file
-        URL url = FileIcon.class.getResource(ext + "32x32.png");
+        URL url = FileIcon.class.getResource("icons/filetype/"+ext + "32x32.png");
         // BufferedImage awtImg = ImageIO.read(url);
         // Image fxImg = SwingFXUtils.toFXImage(awtImg, null);
         fileIcon = new Image(url.openStream());

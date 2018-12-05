@@ -33,6 +33,8 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
 
+import com.bitplan.gui.Linker;
+
 import javafx.event.EventHandler;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -57,12 +59,14 @@ public class DropTarget extends Pane {
   public static Color DRAG_DROPPED_COLOR = Color.LIGHTGRAY;
   private DropTarget target;
   List<DragItem> dragItems = new ArrayList<DragItem>();
+  private Linker linker;
 
   /**
    * create a Drag Space
    */
-  public DropTarget() {
+  public DropTarget(Linker linker) {
     target = this;
+    this.linker=linker;
     target.setOnDragDetected(onDragDetected);
     target.setOnDragOver(onDragOver);
     target.setOnDragEntered(onDragEntered);
@@ -145,7 +149,7 @@ public class DropTarget extends Pane {
    */
   public void addDragItem(DragItem dragItem, double x, double y) {
     dragItems.add(dragItem);
-    target.getChildren().add(dragItem);
+    target.getChildren().add(dragItem.getNode());
     dragItem.setLayoutX(x);
     dragItem.setLayoutY(y);
     List<DropHandler> dropHandlers = pluginManager
@@ -170,12 +174,12 @@ public class DropTarget extends Pane {
       if (db.hasFiles()) {
         success = true;
         for (File file : db.getFiles()) {
-          DragItem dragItem = new DragItem(file);
+          DragItem dragItem = new Card(file,linker);
           addDragItem(dragItem,x,y);
-          x+=dragItem.iconSize;
+          x+=dragItem.getWidth();
           if (x>DropTarget.this.getWidth()) {
             x=0;
-            y+=dragItem.iconSize;
+            y+=dragItem.getHeight();
           }
         }
         setFill(DRAG_DROPPED_COLOR);
