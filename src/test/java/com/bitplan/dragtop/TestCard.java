@@ -31,12 +31,13 @@ import com.bitplan.javafx.SampleApp;
 
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory;
 import de.codecentric.centerdevice.javafxsvg.dimension.PrimitiveDimensionProvider;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 
 public class TestCard {
 
-  public static int SHOW_TIME = 4000;
+  public static int SHOW_TIME = 120000;
 
   @BeforeClass
   public static void init() {
@@ -74,16 +75,21 @@ public class TestCard {
         "http://www.bitplan.com/index.php/Maria_Fahl",
         "http://wiki.bitplan.com/images/wiki/thumb/9/9f/MariaFahl.png/200px-MariaFahl.png",
         "http://wiki.bitplan.com/font-awesome/png/32x32/plain/user.png");
-    HBox box = new HBox();
-    box.setSpacing(10);
-    box.setFillHeight(false);
-    SampleApp sampleApp = new SampleApp("card", box);
-    GraphTraversalSource g = graph.traversal();
-    g.V().forEachRemaining(v -> {
-      box.getChildren().add(new Card(v, sampleApp));
-    });
+    addMaterial(graph, "jar", "Tool", "PDFExtractor",
+        "http://repo1.maven.org/maven2/com/bitplan/pdfextractor/com.bitplan.pdfextractor/0.0.1/com.bitplan.pdfextractor-0.0.1.jar",
+        "",
+        "http://wiki.bitplan.com/font-awesome/png/32x32/plain/wrench.png");
+    
+    //HBox box = new HBox();
+    //box.setSpacing(10);
+    //box.setFillHeight(false);
+    DragTopApp sampleApp = new DragTopApp("");
     sampleApp.show();
     sampleApp.waitOpen();
+    GraphTraversalSource g = graph.traversal();
+    g.V().forEachRemaining(v -> {
+      Platform.runLater(()->sampleApp.getDropTarget().addDragItem(new Card(v, sampleApp)));
+    });
     Thread.sleep(SHOW_TIME);
     sampleApp.close();
   }
@@ -108,5 +114,8 @@ public class TestCard {
     mv.property("url", url);
     mv.property("previewUrl", previewUrl);
     mv.property("iconUrl", iconUrl);
+    if ("jar".equals(fileType)) {
+      mv.property("tool",true);
+    }
   }
 }

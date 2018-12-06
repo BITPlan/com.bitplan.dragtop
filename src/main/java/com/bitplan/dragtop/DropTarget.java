@@ -24,16 +24,20 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.pf4j.DefaultPluginManager;
+import org.pf4j.Plugin;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
 
 import com.bitplan.gui.Linker;
+import com.sun.javafx.geom.Point2D;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.DragEvent;
@@ -60,19 +64,22 @@ public class DropTarget extends Pane {
   private DropTarget target;
   List<DragItem> dragItems = new ArrayList<DragItem>();
   private Linker linker;
+  private Point2D currentPos;
+  Map<String,Card> toolMap=new HashMap<String,Card>();
 
   /**
    * create a Drag Space
    */
   public DropTarget(Linker linker) {
     target = this;
-    this.linker=linker;
+    this.linker = linker;
     target.setOnDragDetected(onDragDetected);
     target.setOnDragOver(onDragOver);
     target.setOnDragEntered(onDragEntered);
     target.setOnDragExited(onDragExited);
     target.setOnDragDropped(onDragDropped);
     target.setOnDragDone(onDragDone);
+    currentPos = new Point2D(Card.marginX, Card.marginY);
   }
 
   EventHandler<MouseEvent> onDragDetected = new EventHandler<MouseEvent>() {
@@ -140,24 +147,79 @@ public class DropTarget extends Pane {
       event.consume();
     }
   };
-  
+
   /**
    * add a dragItem at the given x and y position
+   * 
    * @param dragItem
    * @param x
+   *          - the x position
    * @param y
+   *          - the y position
    */
-  public void addDragItem(DragItem dragItem, double x, double y) {
+  public void addDragItem(DragItem dragItem, Point2D pos) {
+    if (dragItem.getItem() instanceof File) {
+      File file = (File) dragItem.getItem();
+      String ext = FileIcon.getFileExt(file.getName());
+      switch (ext) {
+      case "jar":
+        String pluginId = pluginManager.loadPlugin(file.toPath());
+        if (dragItem instanceof Card) {
+          Card card = (Card) dragItem;
+          card.pluginId = pluginId;
+          toolMap.put(pluginId, card);
+        }
+      }
+    }
     dragItems.add(dragItem);
     target.getChildren().add(dragItem.getNode());
-    dragItem.setLayoutX(x);
-    dragItem.setLayoutY(y);
-    List<DropHandler> dropHandlers = pluginManager
-        .getExtensions(DropHandler.class);
-    if (dropHandlers.size() > 0)
-      for (DropHandler dropHandler : dropHandlers) {
-        dropHandler.getHandler().accept(dragItem);
+    dragItem.setLayoutX(pos.x);
+    dragItem.setLayoutY(pos.y);
+    pos.x += dragItem.getWidth()+Card.marginX;
+    if (pos.x +dragItem.getWidth() > DropTarget.this.getWidth()) {
+      pos.x = Card.marginX;
+      pos.y += dragItem.getHeight()+Card.marginY;
+    }
+    fireTools(dragItem);
+  }
+
+  /**
+   * add a file as a drag item
+   * 
+   * @param file
+   * @param pos
+   */
+  public Card addDragFile(File file, Point2D pos) {
+    Card card = new Card(file, linker);
+    addDragItem(card, pos);
+    return card;
+  }
+
+  /**
+   * add the given card at the currenPosition
+   * 
+   * @param card
+   */
+  public void addDragItem(Card card) {
+    addDragItem(card, currentPos);
+  }
+  
+  /**
+   * fire the tools that are active
+   * @param dragItem
+   */
+  public void fireTools(DragItem dragItem) {
+    for (Card card:toolMap.values()) {
+      if (card.isToolOn()) {
+        List<DropHandler> dropHandlers = pluginManager
+            .getExtensions(DropHandler.class,card.pluginId);
+        if (dropHandlers.size() > 0) {
+          for (DropHandler dropHandler : dropHandlers) {
+            dropHandler.getHandler().accept(dragItem);
+          }
+        }
       }
+    }
   }
 
   EventHandler<DragEvent> onDragDropped = new EventHandler<DragEvent>() {
@@ -169,18 +231,11 @@ public class DropTarget extends Pane {
       /* if there is file data on dragboard, read it and use it */
       Dragboard db = event.getDragboard();
       boolean success = false;
-      double x=event.getX();
-      double y=event.getY();
+      currentPos = new Point2D((float) event.getX(), (float) event.getY());
       if (db.hasFiles()) {
         success = true;
         for (File file : db.getFiles()) {
-          DragItem dragItem = new Card(file,linker);
-          addDragItem(dragItem,x,y);
-          x+=dragItem.getWidth();
-          if (x>DropTarget.this.getWidth()) {
-            x=0;
-            y+=dragItem.getHeight();
-          }
+          addDragFile(file, currentPos);
         }
         setFill(DRAG_DROPPED_COLOR);
       }
@@ -210,6 +265,7 @@ public class DropTarget extends Pane {
   };
 
   DefaultPluginManager pluginManager;
+ 
 
   /**
    * helper to get RGBCode from Color
@@ -226,7 +282,7 @@ public class DropTarget extends Pane {
   protected void setFill(Color color) {
     setStyle(String.format("-fx-background-color: %s;", toRGBCode(color)));
   }
-  
+
   /**
    * activate the given plugins
    * 
@@ -235,22 +291,29 @@ public class DropTarget extends Pane {
   public void activatePlugins(String plugins) {
     // https://github.com/pf4j/pf4j/issues/209
     pluginManager = new JarPluginManager(this.getClass().getClassLoader());
-
+  
     if (plugins != null) {
 
       for (String plugin : plugins.split(",")) {
-        Path pluginPath = Paths.get(plugin).toAbsolutePath().normalize();
-        pluginManager.loadPlugin(pluginPath);
+        if (!plugin.isEmpty()) {
+          Path pluginPath = Paths.get(plugin.trim()).toAbsolutePath()
+              .normalize();
+          File pluginJar = pluginPath.toFile();
+          this.addDragFile(pluginJar, currentPos);
+        }
       }
     }
     pluginManager.startPlugins();
-    showStartedPlugins();
+    registerStartedPlugins();
+    for (Card card:toolMap.values()) {
+      card.startTool();
+    }
   }
 
   /**
-   * show the started plugins
+   * register the started plugins
    */
-  public void showStartedPlugins() {
+  public void registerStartedPlugins() {
 
     List<PluginWrapper> startedPlugins = pluginManager.getStartedPlugins();
 

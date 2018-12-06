@@ -20,14 +20,27 @@
  */
 package com.bitplan.dragtop;
 
+
 import com.bitplan.javafx.WaitableApp;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+/**
+ * the Java FX application for the drag top
+ * @author wf
+ *
+ */
 public class DragTopApp extends WaitableApp {
   private Scene scene;
   private String plugins;
@@ -39,6 +52,7 @@ public class DragTopApp extends WaitableApp {
    */
   public DragTopApp(String plugins) {
     this.plugins = plugins;
+    dropTarget = new DropTarget(this);
   }
 
   public Scene getScene() {
@@ -55,6 +69,11 @@ public class DragTopApp extends WaitableApp {
   int divY = 3;
 
   private DropTarget dropTarget;
+  public DropTarget getDropTarget() {
+    return dropTarget;
+  }
+
+  private Group root;
 
   /**
    * setup the GUI
@@ -64,7 +83,10 @@ public class DragTopApp extends WaitableApp {
   private void setup(Stage stage) {
     stage.setTitle(title);
     Rectangle2D sceneBounds = super.getSceneBounds(screenPercent, divX, divY);
-    dropTarget = new DropTarget(this);
+  
+    //root=new Group();
+    //root.getChildren().add(dropTarget);
+    //root.getChildren().add(createMenu());
     setScene(
         new Scene(dropTarget, sceneBounds.getWidth(), sceneBounds.getHeight()));
     stage.setScene(getScene());
@@ -73,6 +95,31 @@ public class DragTopApp extends WaitableApp {
     stage.setX(super.getScreenWidth() - sceneBounds.getMinX());
     stage.setY(super.getScreenHeight() - sceneBounds.getMinY());
     stage.show();
+  }
+  
+  /**
+   * create a Menu
+   * @return - the menu
+   */
+  public MenuBar createMenu() {
+    // @Todo - use com.bitplan.javafx tools for menu creation
+    MenuItem menuItem = new MenuItem("Exit");
+
+    final Menu menu = new Menu("File");
+    menu.getItems().add(menuItem);
+
+    MenuBar menuBar = new MenuBar();
+    menuBar.getMenus().add(menu);
+
+
+    menuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+        @Override
+        public void handle(ActionEvent e) {
+            Platform.exit();
+        }
+    });
+    return menuBar;
   }
 
   @Override
@@ -83,6 +130,10 @@ public class DragTopApp extends WaitableApp {
     dropTarget.activatePlugins(plugins);
   }
 
+  /**
+   * direct start of DragTop (only for test / debugging - use DragTop.main instead)
+   * @param args
+   */
   public static void main(String[] args) {
     Application.launch(args);
   }

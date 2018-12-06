@@ -20,10 +20,13 @@
  */
 package com.bitplan.dragtop;
 
-import java.io.File;
-
 import javafx.scene.Node;
 
+/**
+ * an item that can be dragged
+ * @author wf
+ *
+ */
 public interface DragItem extends Draggable {
 
   void setLayoutX(double x);

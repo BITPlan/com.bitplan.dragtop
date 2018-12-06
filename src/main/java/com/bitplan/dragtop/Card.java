@@ -31,6 +31,12 @@ import org.controlsfx.control.ToggleSwitch;
 import com.bitplan.gui.Linker;
 import com.bitplan.javafx.Link;
 
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -41,6 +47,12 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 
+/**
+ * a dragItem represented as a card
+ * 
+ * @author wf
+ *
+ */
 public class Card extends AnchorPane implements DragItem {
   // prepare a LOGGER
   protected static Logger LOGGER = Logger.getLogger("com.bitplan.dragtop");
@@ -49,15 +61,18 @@ public class Card extends AnchorPane implements DragItem {
 
   double iconSize = 32.0;
   double previewSize = 64.0;
-  double marginY = 6.0;
-  double cardWidth = 297.0 * 2 / 3;
-  double cardHeight = 210.0 * 2 / 3;
+  static float marginX = 6.0f;
+  static float marginY = 6.0f;
+
+  double cardWidth = 204;
+  double cardHeight = 144;
 
   private ToggleSwitch toggle;
 
   Vertex vertex;
 
   boolean tool = false;
+  boolean toolOn = false;
 
   private String url;
   private Link link;
@@ -78,6 +93,12 @@ public class Card extends AnchorPane implements DragItem {
   private Linker linker;
   Object item;
 
+  public String pluginId;
+
+  public boolean isToolOn() {
+    return toolOn;
+  }
+
   /**
    * create a card for the given vertex
    * 
@@ -93,6 +114,7 @@ public class Card extends AnchorPane implements DragItem {
     this.iconUrl = v.property("iconUrl").value().toString();
     this.previewUrl = v.property("previewUrl").value().toString();
     this.url = v.property("url").value().toString();
+    tool = v.property("tool").isPresent();
 
     setup();
   }
@@ -112,6 +134,10 @@ public class Card extends AnchorPane implements DragItem {
       LOGGER.log(Level.INFO, "Dragitem for file " + filePath + " created");
     }
     fileType = FileIcon.getFileExt(filePath);
+    switch (fileType) {
+    case "jar":
+      tool = true;
+    }
     name = file.getName();
     try {
       url = file.toURI().toURL().toString();
@@ -125,13 +151,11 @@ public class Card extends AnchorPane implements DragItem {
    * 
    */
   public void setup() {
-    this.setPrefHeight(cardHeight);
-    this.setPrefWidth(cardWidth);
-    this.setStyle("-fx-background-color: #fcfcf8;");
-    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID,
-        CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-    this.setWidth(cardWidth);
     this.setHeight(cardHeight);
+    this.setWidth(cardWidth);
+    setupTool(tool);
+    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID,
+        new CornerRadii(10), BorderWidths.DEFAULT)));
 
     fileTypeImage = FileIcon.getFileIcon(fileType);
     fileTypeImageView = addImageView(fileTypeImage,
@@ -141,22 +165,85 @@ public class Card extends AnchorPane implements DragItem {
       iconImageView = addImageView(iconImage,
           this.getPrefWidth() - iconSize * 2, 0, iconSize);
     }
-    if (previewUrl != null) {
+    if (previewUrl != null && !previewUrl.isEmpty()) {
       previewImage = new Image(previewUrl, previewSize, previewSize, false,
           false);
-      previewImageView = addImageView(previewImage, 0, 0, previewSize);
+      previewImageView = addImageView(previewImage, marginX, 0, previewSize);
     }
     link = new Link(url, name, linker);
+    // How to remove hyperlink border in JavaFX?
+    // https://stackoverflow.com/a/40592738/1497139
+    link.setBorder(Border.EMPTY);
+    link.setPadding(new Insets(4, 0, 4, 0));
+    link.setLayoutX(marginX);
     link.setLayoutY(previewSize + marginY);
+
     this.getChildren().add(link);
 
     if (tool) {
+      // https://stackoverflow.com/a/32603027/1497139
       toggle = new ToggleSwitch();
+      toolOn = true;
+      toggle.setSelected(toolOn);
+
       this.getChildren().add(toggle);
       toggle.setLayoutX(this.getPrefWidth() - iconSize * 2.0);
-      toggle.setLayoutY(iconSize);
+      toggle.setLayoutY(iconSize + marginY * 2);
+      toggle.selectedProperty().addListener((o, old, newValue) -> {
+        toolOn = newValue;
+        updateTool(newValue);
+      });
     }
+    updateTool(tool ? toggle.isSelected() : false);
+
     this.activateDrag(this);
+  }
+
+  /**
+   * setup the tool
+   * 
+   * @param tool
+   */
+  private void setupTool(boolean tool) {
+    if (tool) {
+      this.setPrefHeight(cardHeight);
+      this.setPrefWidth(cardHeight);
+      this.setStyle("-fx-background-color: #f0f8ff;");
+    } else {
+      this.setPrefHeight(cardHeight);
+      this.setPrefWidth(cardWidth);
+      this.setStyle("-fx-background-color: #fcfcf8;-fx-background-radius:10");
+    }
+  }
+
+  public void startTool() {
+    Platform.runLater(() -> toggle.setSelected(true));
+  }
+
+  /**
+   * update the view if the tool swith changes
+   * 
+   * @param toolOn
+   */
+  private void updateTool(boolean toolOn) {
+    setupTool(toolOn); // show me as a tool or not
+    double xOfs = cardWidth - cardHeight;
+    if (toolOn) {
+      this.setTranslateX(xOfs);
+      toggle.setTranslateX(0);
+      if (iconImageView != null)
+        this.iconImageView.setTranslateX(0);
+      this.fileTypeImageView.setTranslateX(0);
+      // this.getTransforms().add(new Rotate(45,Rotate.X_AXIS));
+    } else {
+      this.setTranslateX(0);
+      if (toggle != null) {
+        toggle.setTranslateX(xOfs);
+        if (iconImageView != null)
+          this.iconImageView.setTranslateX(xOfs);
+        this.fileTypeImageView.setTranslateX(xOfs);
+      }
+    }
   }
 
   /**
@@ -177,8 +264,10 @@ public class Card extends AnchorPane implements DragItem {
     imageView.setPreserveRatio(true);
     imageView.setImage(image);
 
+    // AnchorPane.setTopAnchor(imageView, y+marginY);
+    // AnchorPane.setRightAnchor(imageView, x);
     imageView.setLayoutX(x);
-    imageView.setLayoutY(y+marginY);
+    imageView.setLayoutY(y + marginY);
     this.getChildren().add(imageView);
     return imageView;
   }

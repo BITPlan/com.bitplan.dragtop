@@ -30,7 +30,24 @@ import org.pf4j.ExtensionPoint;
  *
  */
 public interface DropHandler extends ExtensionPoint {
+  /**
+   * get the handler
+   * @return the handler
+   */
   public Consumer<DragItem> getHandler();
+  /**
+   * set the handler
+   * @param handler
+   */
   public void setHandler( Consumer<DragItem> handler);
-
+  /**
+   * is the dropHandler state on or off?
+   * @return the state - true if on
+   */
+  public boolean isOn();
+  /**
+   * set the dropHandler state to on or off
+   * @param pOn
+   */
+  public void setOn(boolean pOn);
 }
