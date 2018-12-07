@@ -22,6 +22,7 @@ package com.bitplan.dragtop;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,6 +119,19 @@ public class Card extends AnchorPane implements DragItem {
 
     setup();
   }
+  
+  /**
+   * set up a card from a given uri
+   * @param uri
+   * @param linker
+   */
+  public Card(URI uri,Linker linker) {
+     this.fileType="html";
+     this.linker=linker;
+     this.url=uri.toString();
+     this.name=url;
+     setup();
+  }
 
   /**
    * create card
@@ -146,6 +160,7 @@ public class Card extends AnchorPane implements DragItem {
     }
     setup();
   }
+
 
   /**
    * 

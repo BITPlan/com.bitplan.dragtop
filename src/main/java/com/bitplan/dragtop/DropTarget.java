@@ -21,6 +21,8 @@
 package com.bitplan.dragtop;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -32,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.pf4j.DefaultPluginManager;
-import org.pf4j.Plugin;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
 
@@ -40,8 +41,11 @@ import com.bitplan.gui.Linker;
 import com.sun.javafx.geom.Point2D;
 
 import javafx.event.EventHandler;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
@@ -65,21 +69,69 @@ public class DropTarget extends Pane {
   List<DragItem> dragItems = new ArrayList<DragItem>();
   private Linker linker;
   private Point2D currentPos;
-  Map<String,Card> toolMap=new HashMap<String,Card>();
+  Map<String, Card> toolMap = new HashMap<String, Card>();
 
   /**
-   * create a Drag Space
+   * create an space where things can be dropped
+   * 
+   * @param linker
    */
   public DropTarget(Linker linker) {
     target = this;
     this.linker = linker;
+
+    // enable the drag events
+    enableDrag();
+
+    // enable paste
+    enablePaste();
+
+    // initialize the drop position for elements that are not "dropped" via the
+    // mouse
+    // but added via the API
+    currentPos = new Point2D(Card.marginX, Card.marginY);
+  }
+
+  public void enablePaste() {
+    super.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+      if (e.isShortcutDown() && e.getCode() == KeyCode.V) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        URI clipURI = null;
+        try {
+          if (clipboard.hasString()) {
+            String clip = clipboard.getString();
+            clipURI = new URI(clip);
+          }
+          if (clipboard.hasUrl()) {
+            clipURI = new URI(clipboard.getUrl());
+          }
+          if (clipURI != null) {
+            Card card = new Card(clipURI, linker);
+            this.addDragItem(card);
+          }
+        } catch (URISyntaxException e1) {
+          LOGGER.log(Level.WARNING, e1.getMessage(), e1);
+        }
+      }
+    });
+  }
+
+  private void getDragItemFromClipboard() {
+    // TODO Auto-generated method stub
+
+  }
+
+  /**
+   * enable the drag events
+   */
+  public void enableDrag() {
+    // enable dragEvents
     target.setOnDragDetected(onDragDetected);
     target.setOnDragOver(onDragOver);
     target.setOnDragEntered(onDragEntered);
     target.setOnDragExited(onDragExited);
     target.setOnDragDropped(onDragDropped);
     target.setOnDragDone(onDragDone);
-    currentPos = new Point2D(Card.marginX, Card.marginY);
   }
 
   EventHandler<MouseEvent> onDragDetected = new EventHandler<MouseEvent>() {
@@ -175,10 +227,10 @@ public class DropTarget extends Pane {
     target.getChildren().add(dragItem.getNode());
     dragItem.setLayoutX(pos.x);
     dragItem.setLayoutY(pos.y);
-    pos.x += dragItem.getWidth()+Card.marginX;
-    if (pos.x +dragItem.getWidth() > DropTarget.this.getWidth()) {
+    pos.x += dragItem.getWidth() + Card.marginX;
+    if (pos.x + dragItem.getWidth() > DropTarget.this.getWidth()) {
       pos.x = Card.marginX;
-      pos.y += dragItem.getHeight()+Card.marginY;
+      pos.y += dragItem.getHeight() + Card.marginY;
     }
     fireTools(dragItem);
   }
@@ -203,16 +255,17 @@ public class DropTarget extends Pane {
   public void addDragItem(Card card) {
     addDragItem(card, currentPos);
   }
-  
+
   /**
    * fire the tools that are active
+   * 
    * @param dragItem
    */
   public void fireTools(DragItem dragItem) {
-    for (Card card:toolMap.values()) {
+    for (Card card : toolMap.values()) {
       if (card.isToolOn()) {
         List<DropHandler> dropHandlers = pluginManager
-            .getExtensions(DropHandler.class,card.pluginId);
+            .getExtensions(DropHandler.class, card.pluginId);
         if (dropHandlers.size() > 0) {
           for (DropHandler dropHandler : dropHandlers) {
             dropHandler.getHandler().accept(dragItem);
@@ -265,7 +318,6 @@ public class DropTarget extends Pane {
   };
 
   DefaultPluginManager pluginManager;
- 
 
   /**
    * helper to get RGBCode from Color
@@ -291,7 +343,7 @@ public class DropTarget extends Pane {
   public void activatePlugins(String plugins) {
     // https://github.com/pf4j/pf4j/issues/209
     pluginManager = new JarPluginManager(this.getClass().getClassLoader());
-  
+
     if (plugins != null) {
 
       for (String plugin : plugins.split(",")) {
@@ -305,7 +357,7 @@ public class DropTarget extends Pane {
     }
     pluginManager.startPlugins();
     registerStartedPlugins();
-    for (Card card:toolMap.values()) {
+    for (Card card : toolMap.values()) {
       card.startTool();
     }
   }
