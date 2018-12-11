@@ -21,6 +21,8 @@
 package com.bitplan.dragtop;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -29,11 +31,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.io.IoCore;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
@@ -50,6 +58,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
@@ -59,7 +68,7 @@ import javafx.scene.paint.Color;
  * @author wf
  *
  */
-public class DropTarget extends Pane {
+public class DropTarget extends BorderPane {
   // prepare a LOGGER
   protected static Logger LOGGER = Logger.getLogger("com.bitplan.dragtop");
   public static boolean debug = false;
@@ -73,6 +82,8 @@ public class DropTarget extends Pane {
   private Point2D currentPos;
   Map<String, Card> toolMap = new HashMap<String, Card>();
 
+  Graph graph;
+
   /**
    * create an space where things can be dropped
    * 
@@ -81,7 +92,7 @@ public class DropTarget extends Pane {
   public DropTarget(Linker linker) {
     target = this;
     this.linker = linker;
-
+    this.graph = TinkerGraph.open();
     // enable the drag events
     enableDrag();
 
@@ -209,6 +220,12 @@ public class DropTarget extends Pane {
   public void addDragItem(DragItem dragItem, Point2D pos) {
     if (dragItem.getItem() instanceof File) {
       File file = (File) dragItem.getItem();
+      Vertex fileVertex = graph.addVertex("dragtop.File");
+      try {
+        fileVertex.property("url", file.toURI().toURL().toString());
+      } catch (MalformedURLException e1) {
+        LOGGER.log(Level.WARNING, String.format("could not get url for file %s error: %s", file.getPath(),e1.getMessage()),e1);
+      }
       String ext = FileIcon.getFileExt(file.getName());
       switch (ext) {
       case "jar":
@@ -221,17 +238,17 @@ public class DropTarget extends Pane {
         break;
       case "rythm":
         GraphRythmContext rythmContext = GraphRythmContext.getInstance();
-        Object item=dragItem.getItem();
+        Object item = dragItem.getItem();
         if (item instanceof File) {
-          File templateFile=(File) item;
-          Map<String,Object> rootMap=new HashMap<String,Object>();
+          File templateFile = (File) item;
+          Map<String, Object> rootMap = new HashMap<String, Object>();
           try {
-            String html=rythmContext.render(templateFile, rootMap);
-            File htmlFile=File.createTempFile("rythm", ".html");
-            FileUtils.writeStringToFile(htmlFile, html,"UTF-8");
+            String html = rythmContext.render(templateFile, rootMap);
+            File htmlFile = File.createTempFile("rythm", ".html");
+            FileUtils.writeStringToFile(htmlFile, html, "UTF-8");
             linker.browse(htmlFile.toURI().toURL().toString());
           } catch (Exception e) {
-            LOGGER.log(Level.SEVERE,e.getMessage(),e);
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
           }
         }
         break;
@@ -399,6 +416,46 @@ public class DropTarget extends Pane {
           LOGGER.log(Level.INFO, msg);
       }
     }
+  }
+
+  /**
+   * load the graph from the given graphMl file
+   * 
+   * @param graphMl
+   * @throws IOException
+   */
+  public void loadGraph(File graphMl) throws IOException {
+    if (graphMl.exists()) {
+      this.graph.io(IoCore.graphml()).readGraph(graphMl.getPath());
+      GraphTraversalSource g = graph.traversal();
+      g.V().hasLabel("dragtop.File").forEachRemaining(fileVertex->{
+        try {
+          URI uri=new URI(fileVertex.property("url").value().toString());
+          Card card = new Card(uri, linker);
+          this.addDragItem(card);
+        } catch (NoSuchElementException | URISyntaxException e) {
+          LOGGER.log(Level.WARNING,e.getMessage());
+        }
+      });
+    }
+  }
+
+  /**
+   * save the given graph
+   * 
+   * @param graphMl
+   * @throws IOException
+   */
+  public void saveGraph(File graphMl) throws IOException {
+    this.graph.io(IoCore.graphml()).writeGraph(graphMl.getPath());
+  }
+
+  public void clear() {
+    this.graph=TinkerGraph.open();
+    for (DragItem dragItem:dragItems) {
+      target.getChildren().remove(dragItem.getNode());
+    }
+    this.dragItems.clear();
   }
 
 }

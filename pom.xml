@@ -77,7 +77,21 @@
 		<dependency>
 			<groupId>com.bitplan.simplegraph</groupId>
 			<artifactId>com.bitplan.simplegraph.mediawiki</artifactId>
-			<version>0.0.3</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.bitplan.simplegraph/com.bitplan.simplegraph.wikidata -->
+		<dependency>
+			<groupId>com.bitplan.simplegraph</groupId>
+			<artifactId>com.bitplan.simplegraph.wikidata</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.bitplan.simplegraph/com.bitplan.simplegraph.excel -->
+		<dependency>
+			<groupId>com.bitplan.simplegraph</groupId>
+			<artifactId>com.bitplan.simplegraph.excel</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.bitplan.simplegraph/com.bitplan.simplegraph.html -->
+		<dependency>
+			<groupId>com.bitplan.simplegraph</groupId>
+			<artifactId>com.bitplan.simplegraph.html</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

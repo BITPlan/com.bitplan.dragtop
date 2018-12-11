@@ -83,7 +83,7 @@ public class TestCard {
     //HBox box = new HBox();
     //box.setSpacing(10);
     //box.setFillHeight(false);
-    DragTopApp sampleApp = new DragTopApp("");
+    DragTopApp sampleApp = new DragTopApp("","dragtop.xml");
     sampleApp.show();
     sampleApp.waitOpen();
     GraphTraversalSource g = graph.traversal();

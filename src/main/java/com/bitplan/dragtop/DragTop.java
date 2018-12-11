@@ -36,6 +36,10 @@ public class DragTop extends Main {
       "--plugins" }, usage = "plugins\ncomma separated list of plugins to load")
   String plugins;
 
+  @Option(name = "-g", aliases = {
+      "--graph" }, usage = "graph\nthe graphml file for the dragtop graph to open")
+  String graphPath="dragtop.xml";
+
   @Override
   public String getSupportEMail() {
     return "support@bitplan.com";
@@ -54,23 +58,23 @@ public class DragTop extends Main {
       this.showHelp();
     else {
       DragTopApp.testMode = testMode;
-      DragTopApp.debug=debug;
+      DragTopApp.debug = debug;
       DragTopApp.toolkitInit();
-      DragTopApp app=new DragTopApp(plugins);
-     
+      DragTopApp app = new DragTopApp(graphPath,plugins);
+
       app.show();
       app.waitOpen();
       app.waitClose();
     }
   }
-  
+
   /**
    * entry point for application
    * 
    * @param args
    */
   public static void main(String[] args) {
-    DragTop dragtop=new DragTop();
+    DragTop dragtop = new DragTop();
     dragtop.maininstance(args);
   }
 }
