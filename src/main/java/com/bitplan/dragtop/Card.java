@@ -33,10 +33,6 @@ import com.bitplan.gui.Linker;
 import com.bitplan.javafx.Link;
 
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -129,7 +125,8 @@ public class Card extends AnchorPane implements DragItem {
      this.fileType="html";
      this.linker=linker;
      this.url=uri.toString();
-     this.name=url;
+     String[] segments = uri.getPath().split("/");
+     this.name=segments.length>0?segments[segments.length-1]:url;
      setup();
   }
 
@@ -150,7 +147,9 @@ public class Card extends AnchorPane implements DragItem {
     fileType = FileIcon.getFileExt(filePath);
     switch (fileType) {
     case "jar":
+    case "rythm":
       tool = true;
+      break;
     }
     name = file.getName();
     try {

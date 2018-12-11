@@ -1,0 +1,10 @@
+@// Rythm template for dragtop http://www.bitplan.com/index.php/Dragtop
+@// simple "hello world" example
+<!DOCTYPE html>
+<html>
+<head>
+<title>Basic Hello World! Web Page</title>
+</head>
+<body>Hello World!
+</body>
+</html>

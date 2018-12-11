@@ -20,7 +20,6 @@
  */
 package com.bitplan.dragtop;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -117,11 +116,6 @@ public class DropTarget extends Pane {
         }
       }
     });
-  }
-
-  private void getDragItemFromClipboard() {
-    // TODO Auto-generated method stub
-
   }
 
   /**

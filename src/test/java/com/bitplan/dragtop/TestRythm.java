@@ -20,16 +20,22 @@
  */
 package com.bitplan.dragtop;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.Test;
 
+import com.bitplan.mediawiki.japi.SSLWiki;
+import com.bitplan.mediawiki.japi.api.Im;
 import com.bitplan.rythm.GraphRythmContext;
+import com.bitplan.simplegraph.mediawiki.MediaWikiPageNode;
+import com.bitplan.simplegraph.mediawiki.MediaWikiSystem;
 
 /**
  * test Rythm
@@ -61,5 +67,16 @@ public class TestRythm {
     if (debug)
       LOGGER.log(Level.INFO, result);
     assertTrue(result.contains("step 4"));
+  }
+  
+  @Test
+  public void testMediaWiki() throws Exception {
+    MediaWikiSystem mws = new MediaWikiSystem();
+    MediaWikiPageNode pageNode = (MediaWikiPageNode) mws
+          .connect("https://en.wikipedia.org", "/w")
+          .moveTo("Cologne");
+    SSLWiki wiki=mws.getWiki();      
+    List<Im> images=wiki.getImagesOnPage("Cologne",200);
+    assertEquals(109,images.size());
   }
 }

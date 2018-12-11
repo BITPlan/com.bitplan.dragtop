@@ -1,0 +1,45 @@
+@// Rythm template for dragtop http://www.bitplan.com/index.php/Dragtop
+@// usage of MediaWiki module example
+@import com.bitplan.mediawiki.japi.api.Ii
+@import com.bitplan.mediawiki.japi.api.Im
+@import com.bitplan.mediawiki.japi.SSLWiki
+@import com.bitplan.simplegraph.mediawiki.MediaWikiPageNode
+@import com.bitplan.simplegraph.mediawiki.MediaWikiSystem
+@// display a header with the given title
+@def header(String title) {
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>@(title)</title>
+</head>
+<body>
+}
+@// display a footer with the given title
+@def footer() {
+</body>
+</html>
+}
+@def cologne() {
+@{
+  MediaWikiSystem mws = new MediaWikiSystem();
+  MediaWikiPageNode pageNode = (MediaWikiPageNode) mws
+        .connect("https://en.wikipedia.org", "/w")
+        .moveTo("Cologne");
+  SSLWiki wiki=mws.getWiki();      
+  List<Im> images=wiki.getImagesOnPage("Cologne",15);
+  int imageIndex=1;
+}
+<table>
+  <th>#</th><th>title</th>
+@for(Im image:images) {
+   <tr>
+     <td>@(imageIndex++)<td>
+     <td>@(image.getTitle())<td>
+   </tr>
+}
+</table>
+}
+@header("Cologne Wikipedia page")
+@cologne()
+@footer()

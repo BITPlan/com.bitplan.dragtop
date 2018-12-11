@@ -37,7 +37,7 @@ import javafx.scene.layout.HBox;
 
 public class TestCard {
 
-  public static int SHOW_TIME = 120000;
+  public static int SHOW_TIME = 400000;
 
   @BeforeClass
   public static void init() {
