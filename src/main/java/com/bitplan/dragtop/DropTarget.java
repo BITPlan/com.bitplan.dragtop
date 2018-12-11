@@ -20,6 +20,7 @@
  */
 package com.bitplan.dragtop;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,11 +34,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
 
 import com.bitplan.gui.Linker;
+import com.bitplan.rythm.GraphRythmContext;
 import com.sun.javafx.geom.Point2D;
 
 import javafx.event.EventHandler;
@@ -221,6 +224,23 @@ public class DropTarget extends Pane {
           card.pluginId = pluginId;
           toolMap.put(pluginId, card);
         }
+        break;
+      case "rythm":
+        GraphRythmContext rythmContext = GraphRythmContext.getInstance();
+        Object item=dragItem.getItem();
+        if (item instanceof File) {
+          File templateFile=(File) item;
+          Map<String,Object> rootMap=new HashMap<String,Object>();
+          try {
+            String html=rythmContext.render(templateFile, rootMap);
+            File htmlFile=File.createTempFile("rythm", ".html");
+            FileUtils.writeStringToFile(htmlFile, html,"UTF-8");
+            linker.browse(htmlFile.toURI().toURL().toString());
+          } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,e.getMessage(),e);
+          }
+        }
+        break;
       }
     }
     dragItems.add(dragItem);
