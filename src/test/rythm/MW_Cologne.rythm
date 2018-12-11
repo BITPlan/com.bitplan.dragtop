@@ -5,6 +5,11 @@
 @import com.bitplan.mediawiki.japi.SSLWiki
 @import com.bitplan.simplegraph.mediawiki.MediaWikiPageNode
 @import com.bitplan.simplegraph.mediawiki.MediaWikiSystem
+@import org.apache.tinkerpop.gremlin.structure.Graph
+@import org.apache.tinkerpop.gremlin.structure.Vertex
+@args {
+  Graph graph;
+}
 @// display a header with the given title
 @def header(String title) {
 <!DOCTYPE html>

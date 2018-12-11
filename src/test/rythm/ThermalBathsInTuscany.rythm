@@ -1,5 +1,10 @@
 @// Rythm template for dragtop http://www.bitplan.com/index.php/Dragtop
 @// usage of multiple modules example
+@import java.io.File;
+@import java.util.logging.Level;
+@import java.util.logging.Logger;
+@import java.util.regex.Matcher;
+@import java.util.regex.Pattern;
 @import org.apache.poi.ss.usermodel.Workbook
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
@@ -15,3 +20,147 @@
 @import com.bitplan.simplegraph.mediawiki.MediaWikiPageNode
 @import com.bitplan.simplegraph.mediawiki.MediaWikiSystem
 @import com.bitplan.simplegraph.wikidata.WikiDataSystem
+@args {
+  Graph graph;
+}
+@def static {
+  class Context {
+  	boolean debug=false;
+  	final Logger LOGGER = Logger
+      .getLogger("com.bitplan.dragtop");
+    final String WIKIPEDIA_DE = "https://de.wikipedia.org";
+    final String WIKIPEDIA_DE_BASE = WIKIPEDIA_DE + "/wiki/";
+    final String THERMALBATH_LIST = "Liste_der_Thermalbäder_in_der_Toskana";
+
+  	Exception problem=null;
+  }
+  Context context=new Context();
+}
+@// display a header with the given title
+@def header(String title) {
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>@(title)</title>
+</head>
+<body>
+}
+@// display a footer with the given title
+@def footer() {
+</body>
+</html>
+}
+@// get the thermal baths in tuscany
+@// get the thermal baths in tuscany from wikipedia and add a node for each
+@def getThermalBathsInTuscany(Graph graph, Context context) {
+@{
+  try {
+	  MediaWikiSystem mws = new MediaWikiSystem();
+	  MediaWikiPageNode pageNode = (MediaWikiPageNode) mws
+	        .connect(context.WIKIPEDIA_DE, "/w").moveTo(context.THERMALBATH_LIST);
+	  String pageContent = pageNode.getVertex().property("pagecontent").value()
+	        .toString();
+	  if (context.debug)
+	    System.out.println(pageContent);
+	  // The list is between {{TOC}} and {{TOC}}
+	  Pattern p = Pattern.compile("\\{\\{TOC\\}\\}(.*)\\{\\{TOC\\}\\}",
+	        Pattern.DOTALL);
+	  Matcher m = p.matcher(pageContent);
+	  if (m.find()) {
+	    String linksMarkup = m.group(1);
+	    // look for * [[link]] or * [[link|title]] markup
+	    Pattern plink = Pattern.compile("\\*\\s\\[\\[(.*?)(\\|(.*))?\\]\\]");
+	    Matcher mlink = plink.matcher(linksMarkup);
+	    while (mlink.find()) {
+	      String link = mlink.group(1);
+	      String title = mlink.group(3);
+	      if (title == null)
+	        title = link;
+	      if (context.debug)
+	        System.out.println(
+	            String.format("%2d %s:%s", mlink.groupCount(), link, title));
+	      Vertex v = graph.addVertex("wikipedia");
+	      v.property("title", title);
+	      v.property("link", context.WIKIPEDIA_DE_BASE + link);
+	    } // while
+	  } // if 
+  } catch (Exception e) {
+    context.problem=e;
+  }
+}
+}
+@// get the wikiData Items for all "wikipedia" nodes in the given graph and add
+@// the property "wikidata" with the entity ID
+@def getWikiDataItems(Graph graph, Context context) {
+@{
+    graph.traversal().V().hasLabel("wikipedia").forEachRemaining(w -> {
+      String url = w.property("link").value().toString();
+      try {
+        HtmlSystem hs = HtmlSystem.forUrl(url);
+        hs.g().V().hasLabel("a")
+            .has("href", RegexPredicate.regex(
+                "^https://www.wikidata.org/wiki/Special:EntityPage/Q[0-9]+$"))
+            .forEachRemaining(wd -> {
+              String href = wd.property("href").value().toString();
+              String[] parts = href.split("/");
+              String entityId = parts[parts.length - 1];
+              w.property("wikidata", entityId);
+            });
+      } catch (Exception e) {
+        context.LOGGER.log(Level.SEVERE, e.getMessage(), e);
+      }
+    });
+  }
+}
+@// get the wiki data information
+@// for each node having a wikidata property
+@def getWikiDataInfo(Graph graph, Context context) {
+@{
+ try {
+    WikiDataSystem wikiDataSystem = new WikiDataSystem();
+    wikiDataSystem.connect();
+    graph.traversal().V().has("wikidata").forEachRemaining(qnode -> {
+      String q = qnode.property("wikidata").value().toString();
+      SimpleNode wdNode = wikiDataSystem.moveTo(q);
+      if (context.debug)
+        SimpleNode.printDebug.accept(wdNode.getVertex());
+      qnode.property("coordinates",
+          wdNode.getVertex().property("P625").value());
+      qnode.property("image", wdNode.getVertex().property("P18").value());
+    });
+  } catch (Exception e) {
+    context.problem=e;
+  }
+}   
+}
+@// show the Baths
+@def showBaths(List<Vertex> nodes) {
+@{int index=1}
+<table>
+  <th>#</th><th>title</th><th>image</th>
+  @for(Vertex vertex:nodes) {
+    <tr>
+     <td>@(index++)<td>
+     <td>@(vertex.property("link").value().toString())<td>
+     <td>@(vertex.property("image").value().toString())<td>
+   </tr>
+  }
+</table>  
+}
+@// get the thermal baths in tuscany
+@def baths(Context context) {
+@{
+ Graph graph = TinkerGraph.open();
+}
+@getThermalBathsInTuscany(graph,context);
+@getWikiDataItems(graph,context);
+@getWikiDataInfo(graph,context);
+@showBaths(graph.traversal().V().toList());
+}
+@header("Thermal baths in tuscany")
+@baths(context)
+@if(context.problem!=null) {
+  @(context.problem.getMessage())
+}
+@footer()
