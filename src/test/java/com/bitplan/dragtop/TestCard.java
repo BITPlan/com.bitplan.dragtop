@@ -27,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -51,7 +50,7 @@ import javafx.scene.image.Image;
  */
 public class TestCard {
 
-  public static int SHOW_TIME = 400000;
+  public static int SHOW_TIME = 4000;
 
   @BeforeClass
   public static void init() {
