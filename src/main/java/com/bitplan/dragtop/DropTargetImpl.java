@@ -38,6 +38,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
+import org.controlsfx.control.StatusBar;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginWrapper;
@@ -77,6 +78,8 @@ public class DropTargetImpl extends BorderPane implements DropTarget {
   public static Color DRAG_DROPPED_COLOR = Color.LIGHTGRAY;
   private ScrollPane target;
   private Pane contentPane;
+  private StatusBar statusBar;
+  
   List<DragItem> dragItems = new ArrayList<DragItem>();
   private Linker linker;
   private Point2D currentPos;
@@ -85,6 +88,14 @@ public class DropTargetImpl extends BorderPane implements DropTarget {
   Graph graph;
 
 
+
+  public StatusBar getStatusBar() {
+    return statusBar;
+  }
+
+  public void setStatusBar(StatusBar statusBar) {
+    this.statusBar = statusBar;
+  }
 
   /**
    * create an space where things can be dropped
@@ -501,6 +512,13 @@ public class DropTargetImpl extends BorderPane implements DropTarget {
     this.toolMap.clear();
     this.dragItems.clear();
     this.initialPos();
+  }
+
+  @Override
+  public void setProgress(double progress) {
+    if (statusBar!=null) {
+      Platform.runLater(()->statusBar.setProgress(progress));
+    }
   }
 
 }

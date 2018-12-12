@@ -5,6 +5,7 @@
 @import java.util.logging.Logger;
 @import java.util.regex.Matcher;
 @import java.util.regex.Pattern;
+@import java.util.concurrent.atomic.AtomicLong
 @import com.bitplan.dragtop.DropTarget;
 @import org.apache.poi.ss.usermodel.Workbook
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
@@ -55,12 +56,13 @@
 }
 @// get the thermal baths in tuscany
 @// get the thermal baths in tuscany from wikipedia and add a node for each
-@def getThermalBathsInTuscany(Graph graph, Context context) {
+@def getThermalBathsInTuscany(Graph graph, Context context, DropTarget dropTarget) {
 @{
   try {
 	  MediaWikiSystem mws = new MediaWikiSystem();
 	  MediaWikiPageNode pageNode = (MediaWikiPageNode) mws
 	        .connect(context.WIKIPEDIA_DE, "/w").moveTo(context.THERMALBATH_LIST);
+	        dropTarget.setProgress(0.1);
 	  String pageContent = pageNode.getVertex().property("pagecontent").value()
 	        .toString();
 	  if (context.debug)
@@ -94,11 +96,14 @@
 }
 @// get the wikiData Items for all "wikipedia" nodes in the given graph and add
 @// the property "wikidata" with the entity ID
-@def getWikiDataItems(Graph graph, Context context) {
+@def getWikiDataItems(Graph graph, Context context, DropTarget dropTarget) {
 @{
+    long itemCount=graph.traversal().V().hasLabel("wikipedia").count().next().longValue();
+    AtomicLong itemIndex=new AtomicLong(0);
     graph.traversal().V().hasLabel("wikipedia").forEachRemaining(w -> {
       String url = w.property("link").value().toString();
       try {
+        dropTarget.setProgress(0.2+0.3*itemIndex.incrementAndGet()/itemCount);
         HtmlSystem hs = HtmlSystem.forUrl(url);
         hs.g().V().hasLabel("a")
             .has("href", RegexPredicate.regex(
@@ -164,10 +169,11 @@
 @// get the thermal baths in tuscany
 @def baths(Context context, DropTarget dropTarget) {
 @{
+ dropTarget.setProgress(0.05);
  Graph graph = TinkerGraph.open();
 }
-@getThermalBathsInTuscany(graph,context)
-@getWikiDataItems(graph,context)
+@getThermalBathsInTuscany(graph,context,dropTarget)
+@getWikiDataItems(graph,context,dropTarget)
 @getWikiDataInfo(graph,context)
   @{
     List<Vertex>bathNodes=graph.traversal().V().toList();

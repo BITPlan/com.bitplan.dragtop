@@ -97,6 +97,7 @@ public class DragTopApp extends WaitableApp {
     dropTarget.setTop(menu);
     statusBar = new StatusBar();
     dropTarget.setBottom(statusBar);
+    dropTarget.setStatusBar(statusBar);
     setScene(
         new Scene(dropTarget, sceneBounds.getWidth(), sceneBounds.getHeight()));
     stage.setScene(getScene());

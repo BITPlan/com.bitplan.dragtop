@@ -33,5 +33,11 @@ public interface DropTarget {
    * @param card
    */
   void addDragItem(Card card);
+  
+  /**
+   * set the progress in percent
+   * @param progress (0.00 to 1.00) 
+   */
+  void setProgress(double progress);
 
 }
