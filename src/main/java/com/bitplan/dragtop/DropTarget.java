@@ -46,6 +46,7 @@ import com.bitplan.gui.Linker;
 import com.bitplan.rythm.GraphRythmContext;
 import com.sun.javafx.geom.Point2D;
 
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.Clipboard;
@@ -120,7 +121,7 @@ public class DropTarget extends BorderPane {
         }
         if (url != null) {
           Card card = Card.create(url, linker);
-          this.addDragItem(card,true);
+          this.addDragItem(card, true);
         }
       }
     });
@@ -188,9 +189,9 @@ public class DropTarget extends BorderPane {
       }
       /* show to the user that it is an actual gesture target */
       if (event.getGestureSource() != target) {
-        setFill(target,DRAG_ENTERED_COLOR);
+        setFill(target, DRAG_ENTERED_COLOR);
       } else {
-        setFill(target,Color.LIGHTBLUE);
+        setFill(target, Color.LIGHTBLUE);
       }
 
       event.consume();
@@ -200,7 +201,7 @@ public class DropTarget extends BorderPane {
   EventHandler<DragEvent> onDragExited = new EventHandler<DragEvent>() {
     public void handle(DragEvent event) {
       /* mouse moved away, remove the graphical cues */
-      setFill(target,DRAG_DONE_COLOR);
+      setFill(target, DRAG_DONE_COLOR);
       event.consume();
     }
   };
@@ -228,20 +229,9 @@ public class DropTarget extends BorderPane {
         }
         break;
       case "rythm":
-        GraphRythmContext rythmContext = GraphRythmContext.getInstance();
-        Object item = dragItem.getItem();
-        if (item instanceof File) {
-          File templateFile = (File) item;
-          Map<String, Object> rootMap = new HashMap<String, Object>();
-          try {
-            rootMap.put("graph", graph);
-            String html = rythmContext.render(templateFile, rootMap);
-            File htmlFile = File.createTempFile("rythm", ".html");
-            FileUtils.writeStringToFile(htmlFile, html, "UTF-8");
-            linker.browse(htmlFile.toURI().toURL().toString());
-          } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-          }
+        if (dragItem instanceof Card) {
+          Card card = (Card) dragItem;
+          toolMap.put(file.getPath(), card);
         }
         break;
       }
@@ -263,6 +253,26 @@ public class DropTarget extends BorderPane {
   }
 
   /**
+   * run the given template File
+   * 
+   * @param templateFile
+   */
+  protected void runRythm(File templateFile) {
+    GraphRythmContext rythmContext = GraphRythmContext.getInstance();
+
+    Map<String, Object> rootMap = new HashMap<String, Object>();
+    try {
+      rootMap.put("graph", graph);
+      String html = rythmContext.render(templateFile, rootMap);
+      File htmlFile = File.createTempFile("rythm", ".html");
+      FileUtils.writeStringToFile(htmlFile, html, "UTF-8");
+      linker.browse(htmlFile.toURI().toURL().toString());
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, e.getMessage(), e);
+    }
+  }
+
+  /**
    * add a file as a drag item
    * 
    * @param file
@@ -270,7 +280,7 @@ public class DropTarget extends BorderPane {
    */
   public Card addDragFile(File file, Point2D pos) {
     Card card = new Card(file, linker);
-    addDragItem(card, pos,true);
+    addDragItem(card, pos, true);
     return card;
   }
 
@@ -293,11 +303,20 @@ public class DropTarget extends BorderPane {
   public void fireTools(DragItem dragItem) {
     for (Card card : toolMap.values()) {
       if (card.isToolOn()) {
-        List<DropHandler> dropHandlers = pluginManager
-            .getExtensions(DropHandler.class, card.pluginId);
-        if (dropHandlers.size() > 0) {
-          for (DropHandler dropHandler : dropHandlers) {
-            dropHandler.getHandler().accept(dragItem);
+        // does the card have dropHandlers attached to it?
+        if (card.pluginId != null) {
+          List<DropHandler> dropHandlers = pluginManager
+              .getExtensions(DropHandler.class, card.pluginId);
+          if (dropHandlers.size() > 0) {
+            for (DropHandler dropHandler : dropHandlers) {
+              dropHandler.getHandler().accept(dragItem);
+            }
+          }
+        }
+        if (card.getItem() instanceof File) {
+          File file = (File) card.getItem();
+          if (file.getName().endsWith(".rythm")) {
+            new Thread(() -> runRythm(file)).start();
           }
         }
       }
@@ -319,7 +338,7 @@ public class DropTarget extends BorderPane {
         for (File file : db.getFiles()) {
           addDragFile(file, currentPos);
         }
-        setFill(target,DRAG_DROPPED_COLOR);
+        setFill(target, DRAG_DROPPED_COLOR);
       }
       /*
        * let the source know whether the string was successfully transferred and
@@ -341,7 +360,7 @@ public class DropTarget extends BorderPane {
       if (event.getTransferMode() == TransferMode.MOVE) {
         // target.setText("");
       }
-      setFill(target,DRAG_DONE_COLOR);
+      setFill(target, DRAG_DONE_COLOR);
       event.consume();
     }
   };
@@ -360,7 +379,7 @@ public class DropTarget extends BorderPane {
         (int) (color.getGreen() * 255), (int) (color.getBlue() * 255));
   }
 
-  protected void setFill(Node node,Color color) {
+  protected void setFill(Node node, Color color) {
     node.setStyle(String.format("-fx-background-color: %s;", toRGBCode(color)));
   }
 
@@ -452,6 +471,7 @@ public class DropTarget extends BorderPane {
     for (DragItem dragItem : dragItems) {
       target.getChildren().remove(dragItem.getNode());
     }
+    this.toolMap.clear();
     this.dragItems.clear();
   }
 

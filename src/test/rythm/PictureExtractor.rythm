@@ -49,23 +49,24 @@
         .connect(wikiUrl, scriptPath)
         .moveTo(pageName);
       SSLWiki wiki=mws.getWiki();      
-      List<Im> images=wiki.getImagesOnPage(pageName,limit);
+      List<Ii> images=wiki.getImageInfosForPage(pageName,limit);
     }
     @displayImages(url,images)
   }    
 }
 @// display the images
-@def displayImages(String title,List<Im> images) {
+@def displayImages(String title,List<Ii> images) {
 @{
   int imageIndex=1;
 }
 <h1>@(title)</h1>
 <table>
-  <th>#</th><th>title</th>
-@for(Im image:images) {
+  <th>#</th><th>picture</th><th>thumbnail</th>
+@for(Ii image:images) {
    <tr>
-     <td>@(imageIndex++)<td>
-     <td>@(image.getTitle())<td>
+     <td>@(imageIndex++)</td>
+     <td><a href='@(image.getUrl())'>@(image.getCanonicaltitle())</a></td>
+     <td><img src='@(image.getUrl())' height='100px'></td>
    </tr>
 }
 </table>

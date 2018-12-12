@@ -46,8 +46,8 @@
   <th>#</th><th>title</th>
 @for(Im image:images) {
    <tr>
-     <td>@(imageIndex++)<td>
-     <td>@(image.getTitle())<td>
+     <td>@(imageIndex++)</td>
+     <td>@(image.getTitle())</td>
    </tr>
 }
 </table>

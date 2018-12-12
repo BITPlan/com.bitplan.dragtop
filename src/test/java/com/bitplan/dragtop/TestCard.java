@@ -26,7 +26,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -41,6 +44,11 @@ import de.codecentric.centerdevice.javafxsvg.dimension.PrimitiveDimensionProvide
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 
+/**
+ * test the card handling
+ * @author wf
+ *
+ */
 public class TestCard {
 
   public static int SHOW_TIME = 400000;
@@ -62,6 +70,19 @@ public class TestCard {
       Image svgImage = new Image(imageUrl);
       System.out.println(String.format("%s: %4.0f x %4.0f",imageUrl,svgImage.getWidth(),svgImage.getHeight()));
       // assertEquals(100, svgImage.getHeight(), 0.01);
+    }
+  }
+  
+  @Test
+  public void testDownload() throws Exception {
+    String imageUrls[] = {
+        "http://wiki.bitplan.com/images/wiki/0/05/Bath.svg" };
+    for (String imageUrl : imageUrls) {
+      URI imageUri=new URI(imageUrl);
+      String[] segments = imageUri.getPath().split("/");
+      String name = segments.length > 0 ? segments[segments.length - 1] : imageUrl;
+      File destination=File.createTempFile("image", name);
+      FileUtils.copyURLToFile(imageUri.toURL(), destination);
     }
   }
 
