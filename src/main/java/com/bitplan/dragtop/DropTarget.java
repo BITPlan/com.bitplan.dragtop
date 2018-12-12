@@ -47,6 +47,7 @@ import com.bitplan.rythm.GraphRythmContext;
 import com.sun.javafx.geom.Point2D;
 
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -55,6 +56,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
@@ -71,7 +73,7 @@ public class DropTarget extends BorderPane {
   public static Color DRAG_ENTERED_COLOR = Color.LIGHTGREEN;
   public static Color DRAG_DONE_COLOR = Color.LIGHTGRAY;
   public static Color DRAG_DROPPED_COLOR = Color.LIGHTGRAY;
-  private DropTarget target;
+  private Pane target;
   List<DragItem> dragItems = new ArrayList<DragItem>();
   private Linker linker;
   private Point2D currentPos;
@@ -85,7 +87,8 @@ public class DropTarget extends BorderPane {
    * @param linker
    */
   public DropTarget(Linker linker) {
-    target = this;
+    target = new Pane();
+    this.setCenter(target);
     this.linker = linker;
     this.graph = TinkerGraph.open();
     // enable the drag events
@@ -185,9 +188,9 @@ public class DropTarget extends BorderPane {
       }
       /* show to the user that it is an actual gesture target */
       if (event.getGestureSource() != target) {
-        target.setFill(DRAG_ENTERED_COLOR);
+        setFill(target,DRAG_ENTERED_COLOR);
       } else {
-        target.setFill(Color.LIGHTBLUE);
+        setFill(target,Color.LIGHTBLUE);
       }
 
       event.consume();
@@ -197,7 +200,7 @@ public class DropTarget extends BorderPane {
   EventHandler<DragEvent> onDragExited = new EventHandler<DragEvent>() {
     public void handle(DragEvent event) {
       /* mouse moved away, remove the graphical cues */
-      target.setFill(DRAG_DONE_COLOR);
+      setFill(target,DRAG_DONE_COLOR);
       event.consume();
     }
   };
@@ -316,7 +319,7 @@ public class DropTarget extends BorderPane {
         for (File file : db.getFiles()) {
           addDragFile(file, currentPos);
         }
-        setFill(DRAG_DROPPED_COLOR);
+        setFill(target,DRAG_DROPPED_COLOR);
       }
       /*
        * let the source know whether the string was successfully transferred and
@@ -338,7 +341,7 @@ public class DropTarget extends BorderPane {
       if (event.getTransferMode() == TransferMode.MOVE) {
         // target.setText("");
       }
-      target.setFill(DRAG_DONE_COLOR);
+      setFill(target,DRAG_DONE_COLOR);
       event.consume();
     }
   };
@@ -357,8 +360,8 @@ public class DropTarget extends BorderPane {
         (int) (color.getGreen() * 255), (int) (color.getBlue() * 255));
   }
 
-  protected void setFill(Color color) {
-    setStyle(String.format("-fx-background-color: %s;", toRGBCode(color)));
+  protected void setFill(Node node,Color color) {
+    node.setStyle(String.format("-fx-background-color: %s;", toRGBCode(color)));
   }
 
   /**

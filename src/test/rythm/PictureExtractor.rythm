@@ -34,10 +34,19 @@
   @for (Vertex vertex:nodes) {
     @{
       String url=vertex.property("url").value().toString();
+      if (!url.startsWith("http")) 
+      	break;
       String parts[]=url.split("/");
+      if (parts.length<3)
+        break;
       String pageName=parts[parts.length-1];
+      String wikiUrl=parts[0]+"//"+parts[2];
+      String scriptPath="/";
+      if (wikiUrl.contains("wikipedia")) {
+        scriptPath="/w";
+      }
       MediaWikiPageNode pageNode = (MediaWikiPageNode) mws
-        .connect("https://en.wikipedia.org", "/w")
+        .connect(wikiUrl, scriptPath)
         .moveTo(pageName);
       SSLWiki wiki=mws.getWiki();      
       List<Im> images=wiki.getImagesOnPage(pageName,limit);
