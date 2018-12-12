@@ -5,6 +5,7 @@
 @import java.util.logging.Logger;
 @import java.util.regex.Matcher;
 @import java.util.regex.Pattern;
+@import com.bitplan.dragtop.DropTarget;
 @import org.apache.poi.ss.usermodel.Workbook
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
@@ -22,7 +23,8 @@
 @import com.bitplan.simplegraph.mediawiki.MediaWikiSystem
 @import com.bitplan.simplegraph.wikidata.WikiDataSystem
 @args {
-  Graph graph;
+  Graph graph,
+  DropTarget dropTarget;
 }
 @def static {
   static class Context {
@@ -134,39 +136,55 @@
   }
 }   
 }
+@// get the given properties
 @def String getProp(Vertex vertex,String propertyName){
-  VertexProperty<Object> p = vertex.property("image");
+  VertexProperty<Object> p = vertex.property(propertyName);
   return p.isPresent()?p.value().toString():"";
 }
 @// show the Baths
 @def showBaths(List<Vertex> nodes) {
 @{int index=1}
 <table>
-  <th>#</th><th>title</th><th>image</th>
+  <th>#</th><th>title</th><th>coords</th><th>wikidata</th><th>image(s)</th>
   @for(Vertex vertex:nodes) {
+  @{
+    String coords=getProp(vertex,"coordinates");
+    coords=coords.replace("(Earth)","").trim();
+  }
     <tr>
-     <td>@(index++)<td>
-     <td>@getProp(vertex,"link"))<td>
-     <td>@getProp(vertex,"image"))<td>
+     <td>@(index++)</td>
+     <td><a href='@getProp(vertex,"link")'>@getProp(vertex,"title")</a></td>
+      <td><a href=''>@(coords)</a></td>
+     <td><a href='https://www.wikidata.org/wiki/@getProp(vertex,"wikidata")'>@getProp(vertex,"wikidata")</a></td>
+     <td>@getProp(vertex,"image")</td>
    </tr>
   }
 </table>  
 }
 @// get the thermal baths in tuscany
-@def baths(Context context) {
+@def baths(Context context, DropTarget dropTarget) {
 @{
  Graph graph = TinkerGraph.open();
 }
-@getThermalBathsInTuscany(graph,context);
-@getWikiDataItems(graph,context);
-@getWikiDataInfo(graph,context);
-@showBaths(graph.traversal().V().toList());
+@getThermalBathsInTuscany(graph,context)
+@getWikiDataItems(graph,context)
+@getWikiDataInfo(graph,context)
+  @{
+    List<Vertex>bathNodes=graph.traversal().V().toList();
+  }
+@showBaths(bathNodes)
+  @{
+    for (Vertex vertex:bathNodes) {
+      String url=getProp(vertex,"link");
+      dropTarget.addDragItem(url.replace(" ","_"));
+    }
+  }
 }
 @{
  Context context=new Context();
 }
 @header("Thermal baths in tuscany")
-@baths(context)
+@baths(context,dropTarget)
 @if(context.problem!=null) {
   @(context.problem.getMessage())
 }

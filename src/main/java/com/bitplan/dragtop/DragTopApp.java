@@ -59,7 +59,7 @@ public class DragTopApp extends WaitableApp {
   public DragTopApp(String graphPath, String plugins) {
     this.graphPath = graphPath;
     this.plugins = plugins;
-    dropTarget = new DropTarget(this);
+    dropTarget = new DropTargetImpl(this);
   }
 
   public Scene getScene() {
@@ -75,7 +75,7 @@ public class DragTopApp extends WaitableApp {
   int divX = 3;
   int divY = 3;
 
-  private DropTarget dropTarget;
+  private DropTargetImpl dropTarget;
 
   public DropTarget getDropTarget() {
     return dropTarget;
@@ -179,11 +179,7 @@ public class DragTopApp extends WaitableApp {
     newMenuItem.setOnAction(e -> clear());
 
     quitMenuItem.setOnAction(e -> {
-      try {
-        dropTarget.saveGraph(graphMl);
-      } catch (IOException e1) {
-        handle(e1);
-      }
+      this.optSaveIfModified();
       Platform.exit();
     });
 
@@ -220,15 +216,18 @@ public class DragTopApp extends WaitableApp {
     return menuBar;
   }
 
-  protected void clear() {
+  protected void optSaveIfModified() {
     // save current state
     // TODO - should we interactively ask for this
     // only in case of modifications?
-    try {
+    /*try {
       dropTarget.saveGraph(graphMl);
     } catch (IOException e1) {
       handle(e1);
-    }
+    }*/
+  }
+  protected void clear() {
+    optSaveIfModified();
     // and clear
     dropTarget.clear();
   }
@@ -272,7 +271,7 @@ public class DragTopApp extends WaitableApp {
   public void start(Stage stage) {
     super.start(stage);
     setup(stage);
-    DropTarget.debug = debug;
+    DropTargetImpl.debug = debug;
     dropTarget.activatePlugins(plugins);
   }
 

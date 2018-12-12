@@ -72,5 +72,5 @@
 </table>
 }
 @header("Picture extractor")
-@extractPictures(graph.traversal().V().has("url").toList(),15)
+@extractPictures(graph.traversal().V().has("url").toList(),25)
 @footer()

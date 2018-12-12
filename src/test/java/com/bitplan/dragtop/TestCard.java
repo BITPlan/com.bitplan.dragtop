@@ -114,7 +114,7 @@ public class TestCard {
     sampleApp.waitOpen();
     GraphTraversalSource g = graph.traversal();
     g.V().forEachRemaining(v -> {
-      Platform.runLater(()->sampleApp.getDropTarget().addDragItem(new Card(v, sampleApp),true));
+      Platform.runLater(()->sampleApp.getDropTarget().addDragItem(new Card(v, sampleApp)));
     });
     Thread.sleep(SHOW_TIME);
     sampleApp.close();
