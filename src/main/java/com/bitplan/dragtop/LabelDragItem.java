@@ -22,6 +22,7 @@ package com.bitplan.dragtop;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +47,7 @@ public class LabelDragItem extends Label implements DragItem {
   private Image image;
   double iconSize = 64;
   Object item;
+  String url;
 
   public Object getItem() {
     return item;
@@ -62,6 +64,11 @@ public class LabelDragItem extends Label implements DragItem {
    */
   public LabelDragItem(File file) {
     this.item = file;
+    try {
+      this.url=file.toURI().toURL().toString();
+    } catch (MalformedURLException e) {
+      LOGGER.log(Level.WARNING, String.format("could not get url for file %s error: %s", file.getPath(),e.getMessage()),e);
+    }
     String filePath = file.getAbsolutePath();
     if (debug) {
       LOGGER.log(Level.INFO, "Dragitem for file " + filePath + " created");
@@ -105,6 +112,11 @@ public class LabelDragItem extends Label implements DragItem {
         handle(e);
       }
     }
+  }
+
+  @Override
+  public String getUrl() {
+    return url;
   }
 
   

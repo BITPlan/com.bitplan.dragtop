@@ -20,6 +20,13 @@
  */
 package com.bitplan.dragtop;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -33,7 +40,6 @@ import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory;
 import de.codecentric.centerdevice.javafxsvg.dimension.PrimitiveDimensionProvider;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
-import javafx.scene.layout.HBox;
 
 public class TestCard {
 
@@ -83,15 +89,27 @@ public class TestCard {
     //HBox box = new HBox();
     //box.setSpacing(10);
     //box.setFillHeight(false);
-    DragTopApp sampleApp = new DragTopApp("","dragtop.xml");
+    DragTopApp sampleApp = new DragTopApp("","dragtoptest.xml");
     sampleApp.show();
     sampleApp.waitOpen();
     GraphTraversalSource g = graph.traversal();
     g.V().forEachRemaining(v -> {
-      Platform.runLater(()->sampleApp.getDropTarget().addDragItem(new Card(v, sampleApp)));
+      Platform.runLater(()->sampleApp.getDropTarget().addDragItem(new Card(v, sampleApp),true));
     });
     Thread.sleep(SHOW_TIME);
     sampleApp.close();
+  }
+  
+  @Test
+  public void testCardCreate() throws IOException {
+    String url="https://en.wikipedia.org/wiki/Cologne";
+    Card card=Card.create(url, null);
+    assertEquals(url,card.getUrl());
+    File file=File.createTempFile("test", ".pdf");
+    Card cardf=Card.create(file.toURI().toURL().toString(), null);
+    assertNotNull(cardf);
+    assertTrue(cardf.getItem() instanceof File);
+    file.delete();
   }
 
   /**

@@ -22,6 +22,11 @@ package com.bitplan.dragtop;
 
 import javafx.scene.Node;
 
+/**
+ * draggable items implement this interface
+ * @author wf
+ *
+ */
 public interface Draggable {
 
   /**

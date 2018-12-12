@@ -22,16 +22,12 @@ package com.bitplan.dragtop;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +55,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
@@ -105,25 +100,24 @@ public class DropTarget extends BorderPane {
     currentPos = new Point2D(Card.marginX, Card.marginY);
   }
 
+  /**
+   * enable pasting with cut&paste via keyboard shortcut CTRL-V / CMD-V
+   */
   public void enablePaste() {
     super.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
       if (e.isShortcutDown() && e.getCode() == KeyCode.V) {
         Clipboard clipboard = Clipboard.getSystemClipboard();
-        URI clipURI = null;
-        try {
-          if (clipboard.hasString()) {
-            String clip = clipboard.getString();
-            clipURI = new URI(clip);
-          }
-          if (clipboard.hasUrl()) {
-            clipURI = new URI(clipboard.getUrl());
-          }
-          if (clipURI != null) {
-            Card card = new Card(clipURI, linker);
-            this.addDragItem(card);
-          }
-        } catch (URISyntaxException e1) {
-          LOGGER.log(Level.WARNING, e1.getMessage(), e1);
+        String url = null;
+
+        if (clipboard.hasString()) {
+          url = clipboard.getString();
+        }
+        if (clipboard.hasUrl()) {
+          url = clipboard.getUrl();
+        }
+        if (url != null) {
+          Card card = Card.create(url, linker);
+          this.addDragItem(card,true);
         }
       }
     });
@@ -212,20 +206,14 @@ public class DropTarget extends BorderPane {
    * add a dragItem at the given x and y position
    * 
    * @param dragItem
-   * @param x
-   *          - the x position
-   * @param y
-   *          - the y position
+   * @param pos
+   *          - position to add the item at
+   * @param addToGraph
+   *          - true if the item should also be added to the graph
    */
-  public void addDragItem(DragItem dragItem, Point2D pos) {
+  public void addDragItem(DragItem dragItem, Point2D pos, boolean addToGraph) {
     if (dragItem.getItem() instanceof File) {
       File file = (File) dragItem.getItem();
-      Vertex fileVertex = graph.addVertex("dragtop.File");
-      try {
-        fileVertex.property("url", file.toURI().toURL().toString());
-      } catch (MalformedURLException e1) {
-        LOGGER.log(Level.WARNING, String.format("could not get url for file %s error: %s", file.getPath(),e1.getMessage()),e1);
-      }
       String ext = FileIcon.getFileExt(file.getName());
       switch (ext) {
       case "jar":
@@ -243,6 +231,7 @@ public class DropTarget extends BorderPane {
           File templateFile = (File) item;
           Map<String, Object> rootMap = new HashMap<String, Object>();
           try {
+            rootMap.put("graph", graph);
             String html = rythmContext.render(templateFile, rootMap);
             File htmlFile = File.createTempFile("rythm", ".html");
             FileUtils.writeStringToFile(htmlFile, html, "UTF-8");
@@ -253,6 +242,10 @@ public class DropTarget extends BorderPane {
         }
         break;
       }
+    }
+    if (addToGraph) {
+      Vertex vertex = graph.addVertex("dragtop.Item");
+      vertex.property("url", dragItem.getUrl());
     }
     dragItems.add(dragItem);
     target.getChildren().add(dragItem.getNode());
@@ -274,17 +267,19 @@ public class DropTarget extends BorderPane {
    */
   public Card addDragFile(File file, Point2D pos) {
     Card card = new Card(file, linker);
-    addDragItem(card, pos);
+    addDragItem(card, pos,true);
     return card;
   }
 
   /**
-   * add the given card at the currenPosition
+   * add the given card at the currentPosition
    * 
    * @param card
+   * @param addTo
+   *          Graph - true if the card should also be added to the graph
    */
-  public void addDragItem(Card card) {
-    addDragItem(card, currentPos);
+  public void addDragItem(Card card, boolean addToGraph) {
+    addDragItem(card, currentPos, addToGraph);
   }
 
   /**
@@ -428,14 +423,10 @@ public class DropTarget extends BorderPane {
     if (graphMl.exists()) {
       this.graph.io(IoCore.graphml()).readGraph(graphMl.getPath());
       GraphTraversalSource g = graph.traversal();
-      g.V().hasLabel("dragtop.File").forEachRemaining(fileVertex->{
-        try {
-          URI uri=new URI(fileVertex.property("url").value().toString());
-          Card card = new Card(uri, linker);
-          this.addDragItem(card);
-        } catch (NoSuchElementException | URISyntaxException e) {
-          LOGGER.log(Level.WARNING,e.getMessage());
-        }
+      g.V().hasLabel("dragtop.Item").forEachRemaining(itemVertex -> {
+        String url = itemVertex.property("url").value().toString();
+        Card card = Card.create(url, linker);
+        this.addDragItem(card, false);
       });
     }
   }
@@ -450,9 +441,12 @@ public class DropTarget extends BorderPane {
     this.graph.io(IoCore.graphml()).writeGraph(graphMl.getPath());
   }
 
+  /**
+   * clear the graph and the droptarget
+   */
   public void clear() {
-    this.graph=TinkerGraph.open();
-    for (DragItem dragItem:dragItems) {
+    this.graph = TinkerGraph.open();
+    for (DragItem dragItem : dragItems) {
       target.getChildren().remove(dragItem.getNode());
     }
     this.dragItems.clear();

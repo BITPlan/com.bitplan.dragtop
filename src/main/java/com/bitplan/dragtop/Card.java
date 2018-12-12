@@ -23,6 +23,8 @@ package com.bitplan.dragtop;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,6 +98,14 @@ public class Card extends AnchorPane implements DragItem {
     return toolOn;
   }
 
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
   /**
    * create a card for the given vertex
    * 
@@ -115,19 +125,20 @@ public class Card extends AnchorPane implements DragItem {
 
     setup();
   }
-  
+
   /**
    * set up a card from a given uri
+   * 
    * @param uri
    * @param linker
    */
-  public Card(URI uri,Linker linker) {
-     this.fileType="html";
-     this.linker=linker;
-     this.url=uri.toString();
-     String[] segments = uri.getPath().split("/");
-     this.name=segments.length>0?segments[segments.length-1]:url;
-     setup();
+  public Card(URI uri, Linker linker) {
+    this.fileType = "html";
+    this.linker = linker;
+    this.url = uri.toString();
+    String[] segments = uri.getPath().split("/");
+    this.name = segments.length > 0 ? segments[segments.length - 1] : url;
+    setup();
   }
 
   /**
@@ -159,7 +170,6 @@ public class Card extends AnchorPane implements DragItem {
     }
     setup();
   }
-
 
   /**
    * 
@@ -289,6 +299,29 @@ public class Card extends AnchorPane implements DragItem {
   @Override
   public Object getItem() {
     return item;
+  }
+
+  /**
+   * create a card for the given url
+   * @param url
+   * @param linker
+   * @return the new card
+   */
+  public static Card create(String url, Linker linker) {
+    Card card = null;
+    URI uri;
+    try {
+      uri = new URI(url);
+      if (url.startsWith("file:")) {
+        File file=Paths.get(uri).toFile();
+        card = new Card(file,linker);
+      } else {
+        card = new Card(uri, linker);
+      }
+    } catch (URISyntaxException e) {
+      LOGGER.log(Level.WARNING,e.getMessage());
+    }
+    return card;
   }
 
 }

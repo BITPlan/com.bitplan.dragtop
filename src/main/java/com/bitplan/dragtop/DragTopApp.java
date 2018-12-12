@@ -122,7 +122,7 @@ public class DragTopApp extends WaitableApp {
    */
   public File load(String pGraphPath) throws IOException {
     File lGraphMl;
-    if (!pGraphPath.contains(File.pathSeparator))
+    if (!pGraphPath.contains("/"))
       lGraphMl = new File(this.getAppRoot(), pGraphPath);
     else
       lGraphMl = new File(pGraphPath);

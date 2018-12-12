@@ -39,5 +39,6 @@ public interface DragItem extends Draggable {
     return (Node) this;
   }
   Object getItem();
+  public String getUrl();
 
 }

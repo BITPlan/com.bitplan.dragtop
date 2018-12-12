@@ -134,6 +134,10 @@
   }
 }   
 }
+@def getProp(Vertex vertex,String propertyName):String {
+  VertexProperty<Object> p = vertex.property("image");
+  return p.isPresent()?p.value().toString():"";
+}
 @// show the Baths
 @def showBaths(List<Vertex> nodes) {
 @{int index=1}
@@ -142,8 +146,8 @@
   @for(Vertex vertex:nodes) {
     <tr>
      <td>@(index++)<td>
-     <td>@(vertex.property("link").value().toString())<td>
-     <td>@(vertex.property("image").value().toString())<td>
+     <td>@getProp(vertex,"link"))<td>
+     <td>@getProp(vertex,"image"))<td>
    </tr>
   }
 </table>  
