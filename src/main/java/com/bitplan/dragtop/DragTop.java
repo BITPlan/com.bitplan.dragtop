@@ -44,7 +44,7 @@ public class DragTop extends Main {
   public String getSupportEMail() {
     return "support@bitplan.com";
   }
-
+  
   @Override
   public String getSupportEMailPreamble() {
     return "Dear DragTop user,";
