@@ -2,7 +2,7 @@
 [Drag and Drop target desktop application with pluggable functionality](http://wiki.bitplan.com/index.php/dragtop)
 
 [![Travis (.org)](https://img.shields.io/travis/BITPlan/com.bitplan.dragtop.svg)](https://travis-ci.org/BITPlan/com.bitplan.dragtop)
-[![Maven Central](https://img.shields.io/maven-central/v/com.bitplan.dragtop/com.bitplan.dragtop.svg)](https://search.maven.org/artifact/com.bitplan.dragtop/com.bitplan.dragtop/0.0.1/jar)
+[![Maven Central](https://img.shields.io/maven-central/v/com.bitplan.dragtop/com.bitplan.dragtop.svg)](https://search.maven.org/artifact/com.bitplan.dragtop/com.bitplan.dragtop/0.0.2/jar)
 [![GitHub issues](https://img.shields.io/github/issues/BITPlan/com.bitplan.dragtop.svg)](https://github.com/BITPlan/com.bitplan.dragtop/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/BITPlan/com.bitplan.dragtop.svg)](https://github.com/BITPlan/com.bitplan.dragtop/issues/?q=is%3Aissue+is%3Aclosed)
 [![GitHub](https://img.shields.io/github/license/BITPlan/com.bitplan.dragtop.svg)](https://www.apache.org/licenses/LICENSE-2.0)
@@ -21,11 +21,11 @@ Maven dependency
 <dependency>
   <groupId>com.bitplan.dragtop</groupId>
   <artifactId>com.bitplan.dragtop</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 
-[Current release at repo1.maven.org](http://repo1.maven.org/maven2/com/bitplan/dragtop/com.bitplan.dragtop/0.0.1/)
+[Current release at repo1.maven.org](http://repo1.maven.org/maven2/com/bitplan/dragtop/com.bitplan.dragtop/0.0.2/)
 
 ### How to build
 ```
