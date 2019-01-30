@@ -89,6 +89,14 @@ public class DropTargetImpl extends BorderPane implements DropTarget {
 
 
 
+  public List<DragItem> getDragItems() {
+    return dragItems;
+  }
+
+  public void setDragItems(List<DragItem> dragItems) {
+    this.dragItems = dragItems;
+  }
+
   public StatusBar getStatusBar() {
     return statusBar;
   }

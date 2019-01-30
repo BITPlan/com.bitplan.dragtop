@@ -20,6 +20,8 @@
  */
 package com.bitplan.dragtop;
 
+import java.util.List;
+
 public interface DropTarget {
 
   /**
@@ -33,6 +35,9 @@ public interface DropTarget {
    * @param card
    */
   void addDragItem(Card card);
+  
+  List<DragItem> getDragItems();
+  
   
   /**
    * set the progress in percent
