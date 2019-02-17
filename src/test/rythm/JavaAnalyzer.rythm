@@ -4,6 +4,8 @@
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 @import org.apache.tinkerpop.gremlin.structure.Vertex
 @import com.bitplan.simplegraph.core.SimpleNode
+@import com.bitplan.simplegraph.filesystem.FileSystem
+@import com.bitplan.simplegraph.filesystem.FileNode
 @import java.net.URI
 @args {
   Graph graph;
@@ -23,6 +25,24 @@
 </body>
 </html>
 }
+@// analyze the given file system structure
+@def analyzeFile(File aroot) {
+  @if (aroot.isDirectory()) {
+    @{
+      FileSystem fs=new FileSystem();
+      FileNode start = (FileNode) fs.connect("").moveTo(aroot.getPath());
+      start.recursiveOut("files",Integer.MAX_VALUE);
+      List<Vertex> javaFileNodes=start.g().V().has("ext", "java").toList();
+    }
+    <ol>
+    @for (Vertex fileNode:javaFileNodes) {
+      <li> @(fileNode.property("name").value().toString())
+    }
+    </ol>
+  }
+}
+@// analyze the urls/files supplied from the Dragtop via the Vertices
+@// labeled "dragtop.Item"
 @def analyzeFiles(Graph graph) {
 @{
   GraphTraversalSource g=graph.traversal();
@@ -37,7 +57,8 @@
         }
      }
      @if (aroot) {
-       <h3>@(aroot.getPath())</h3>
+       <h3>@(aroot.getName())</h3>
+       @analyzeFile(aroot)
     }
   }
 }

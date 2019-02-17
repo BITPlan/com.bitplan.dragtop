@@ -88,6 +88,11 @@
 			<groupId>com.bitplan.simplegraph</groupId>
 			<artifactId>com.bitplan.simplegraph.excel</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.bitplan.simplegraph/com.bitplan.simplegraph.filesystem^ -->
+		<dependency>
+			<groupId>com.bitplan.simplegraph</groupId>
+			<artifactId>com.bitplan.simplegraph.filesystem</artifactId>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.bitplan.simplegraph/com.bitplan.simplegraph.powerpoint -->
 		<dependency>
 			<groupId>com.bitplan.simplegraph</groupId>
