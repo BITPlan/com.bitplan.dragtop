@@ -4,6 +4,7 @@
 @import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 @import org.apache.tinkerpop.gremlin.structure.Vertex
 @import com.bitplan.simplegraph.core.SimpleNode
+@import java.net.URI
 @args {
   Graph graph;
 }
@@ -25,8 +26,20 @@
 @def analyzeFiles(Graph graph) {
 @{
   GraphTraversalSource g=graph.traversal();
-  g.V().hasLabel("dragtop.Item").forEachRemaining(SimpleNode.printDebug);
+  List<Vertex> dragtopItemNodes=g.V().hasLabel("dragtop.Item").toList()
 }
+  @for (Vertex dragtopItem:dragtopItemNodes) {
+     @{
+        String url=dragtopItem.property("url").value().toString();
+        File aroot=null;
+        if (!url.endsWith("rythm")) {
+           aroot=new File(new URI(url));
+        }
+     }
+     @if (aroot) {
+       <h3>@(aroot.getPath())</h3>
+    }
+  }
 }
 @header("Java Analyzer")
 @analyzeFiles(graph)
