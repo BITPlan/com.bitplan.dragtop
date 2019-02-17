@@ -25,8 +25,19 @@
 </body>
 </html>
 }
+@// analyze the given javaFile
+@def analyzeJavaFile(File javaFile) {
+@{
+  String fileName=javaFile.getName();
+  String fileUrl=javaFile.toURI().toURL().toString();
+}
+<li> <h4><a href='@(fileUrl)'>@(fileName)</a></h4>
+}
 @// analyze the given file system structure
 @def analyzeFile(File aroot) {
+  @if (aroot.isFile()) {
+    @analyzeJavaFile(aroot)
+  }
   @if (aroot.isDirectory()) {
     @{
       FileSystem fs=new FileSystem();
@@ -37,11 +48,10 @@
     <ol>
     @for (Vertex fileNode:javaFileNodes) {
       @{
-        String fileName=fileNode.property("name").value().toString();
         String filePath=fileNode.property("path").value().toString();
-        String fileUrl=new File(filePath).toURI().toURL().toString();
+        File javaFile=new File(filePath);
       }
-      <li> <a href='@(fileUrl)'>@(fileName)</a>
+      @analyzeJavaFile(javaFile)
     }
     </ol>
   }
