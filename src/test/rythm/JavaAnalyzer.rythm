@@ -36,7 +36,12 @@
     }
     <ol>
     @for (Vertex fileNode:javaFileNodes) {
-      <li> @(fileNode.property("name").value().toString())
+      @{
+        String fileName=fileNode.property("name").value().toString();
+        String filePath=fileNode.property("path").value().toString();
+        String fileUrl=new File(filePath).toURI().toURL().toString();
+      }
+      <li> <a href='@(fileUrl)'>@(fileName)</a>
     }
     </ol>
   }
