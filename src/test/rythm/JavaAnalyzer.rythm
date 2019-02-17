@@ -6,6 +6,8 @@
 @import com.bitplan.simplegraph.core.SimpleNode
 @import com.bitplan.simplegraph.filesystem.FileSystem
 @import com.bitplan.simplegraph.filesystem.FileNode
+@import com.bitplan.simplegraph.java.JavaSystem
+@import com.bitplan.simplegraph.java.JavaSourceNode
 @import java.net.URI
 @args {
   Graph graph;
@@ -25,6 +27,22 @@
 </body>
 </html>
 }
+@// parse the given javaFile
+@def parseJavaFile(File javaFile) {
+  <ol>
+  @{
+    JavaSystem js = new JavaSystem();
+    js.connect();
+    JavaSourceNode jsn = (JavaSourceNode) js.moveTo(javaFile.getPath());
+    // find class or Interface declarations
+    List<Vertex> methodNodes=js.g().V()
+        .hasLabel("MethodDeclaration").toList();
+  }
+  @for (Vertex methodNode:methodNodes) {
+    <li>@(methodNode.property("name").value().toString())
+  }
+  </ol>
+}
 @// analyze the given javaFile
 @def analyzeJavaFile(File javaFile) {
 @{
@@ -32,9 +50,11 @@
   String fileUrl=javaFile.toURI().toURL().toString();
 }
 <li> <h4><a href='@(fileUrl)'>@(fileName)</a></h4>
+@parseJavaFile(javaFile)
 }
 @// analyze the given file system structure
 @def analyzeFile(File aroot) {
+  <ol>
   @if (aroot.isFile()) {
     @analyzeJavaFile(aroot)
   }
@@ -45,7 +65,7 @@
       start.recursiveOut("files",Integer.MAX_VALUE);
       List<Vertex> javaFileNodes=start.g().V().has("ext", "java").toList();
     }
-    <ol>
+
     @for (Vertex fileNode:javaFileNodes) {
       @{
         String filePath=fileNode.property("path").value().toString();
@@ -53,8 +73,8 @@
       }
       @analyzeJavaFile(javaFile)
     }
-    </ol>
   }
+  </ol>
 }
 @// analyze the urls/files supplied from the Dragtop via the Vertices
 @// labeled "dragtop.Item"
