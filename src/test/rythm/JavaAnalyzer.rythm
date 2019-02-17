@@ -1,0 +1,26 @@
+@import org.apache.tinkerpop.gremlin.structure.Graph
+@import org.apache.tinkerpop.gremlin.structure.Vertex
+@args {
+  Graph graph;
+}
+@// display a header with the given title
+@def header(String title) {
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>@(title)</title>
+</head>
+<body>
+}
+@// display a footer with the given title
+@def footer() {
+</body>
+</html>
+}
+@def analyzeFiles() {
+
+}
+@header("Java Analyzer")
+@analyzeFiles()
+@footer()
