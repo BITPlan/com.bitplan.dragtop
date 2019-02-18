@@ -29,6 +29,7 @@
 }
 @// parse the given javaFile
 @def parseJavaFile(File javaFile) {
+  <h4>Methods</h4>
   <ol>
   @{
     JavaSystem js = new JavaSystem();
@@ -43,20 +44,31 @@
   }
   </ol>
 }
-@// analyze the given javaFile
-@def analyzeJavaFile(File javaFile) {
-@{
-  String fileName=javaFile.getName();
-  String fileUrl=javaFile.toURI().toURL().toString();
-}
+@// analyze the given file
+@def analyzeFile(File file) {
+  @{
+    String fileName=file.getName();
+    String fileUrl=file.toURI().toURL().toString();
+  }
 <li> <h4><a href='@(fileUrl)'>@(fileName)</a></h4>
-@parseJavaFile(javaFile)
+  @if (fileName.endsWith(".java")) {
+    @parseJavaFile(file)
+  }
+}
+@// analyze the given file node
+@def analyzeFileNode(Vertex fileNode) {
+  @{
+    String filePath=fileNode.property("path").value().toString();
+    File file=new File(filePath);
+  }
+  @analyzeFile(file)
 }
 @// analyze the given file system structure
-@def analyzeFile(File aroot) {
-  <ol>
+@def analyzeFileOrDirectory(File aroot) {
+
   @if (aroot.isFile()) {
-    @analyzeJavaFile(aroot)
+    <ol>
+    @analyzeFile(aroot)
   }
   @if (aroot.isDirectory()) {
     @{
@@ -64,17 +76,21 @@
       FileNode start = (FileNode) fs.connect("").moveTo(aroot.getPath());
       start.recursiveOut("files",Integer.MAX_VALUE);
       List<Vertex> javaFileNodes=start.g().V().has("ext", "java").toList();
+      List<Vertex> classFileNodes=start.g().V().has("ext", "class").toList();
     }
-
+    <h3>Java</h3>
+    <ol>
     @for (Vertex fileNode:javaFileNodes) {
-      @{
-        String filePath=fileNode.property("path").value().toString();
-        File javaFile=new File(filePath);
-      }
-      @analyzeJavaFile(javaFile)
+      @analyzeFileNode(fileNode)
     }
+    </ol>
+    <h3>Class</h3>
+    <ol>
+    @for (Vertex fileNode:classFileNodes) {
+      @analyzeFileNode(fileNode)
+    }
+    </ol>
   }
-  </ol>
 }
 @// analyze the urls/files supplied from the Dragtop via the Vertices
 @// labeled "dragtop.Item"
@@ -93,7 +109,7 @@
      }
      @if (aroot) {
        <h3>@(aroot.getName())</h3>
-       @analyzeFile(aroot)
+       @analyzeFileOrDirectory(aroot)
     }
   }
 }
