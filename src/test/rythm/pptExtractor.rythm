@@ -1,9 +1,10 @@
 @// Rythm template
 @// you can try me out at http://fiddle.rythmengine.com
-@// Created by Wolfgang Fahl, BITPlan GmbH,  2018-12-06@
+@// Created by Wolfgang Fahl, BITPlan GmbH,  2018-12-06
 @import com.bitplan.dragtop.DropTarget
 @import com.bitplan.dragtop.DragItem
 @import org.apache.tinkerpop.gremlin.structure.Graph
+@import org.apache.tinkerpop.gremlin.structure.Vertex
 @import com.bitplan.simplegraph.powerpoint.PowerPointSystem
 @import com.bitplan.simplegraph.powerpoint.SlideNode
 @import com.bitplan.simplegraph.core.SimpleStepNode
@@ -28,11 +29,20 @@
   t.printStackTrace(new PrintWriter(sw));
   return sw.toString();
 }
+@// show errors
 @def showError(Throwable error) {
 <h3 style="color:red">Error @(error.getClass().getName()): @(error.getMessage())</h3>
 <pre>
 @getStackTrace(error)
 </pre>
+}
+@// get the property with the given name or ? if the property is not set
+@def String getProperty(SimpleStepNode n, String pname) {
+  Object property=n.property(pname);
+  String value="?";
+  if (property!=null)
+    value=property.toString();
+  return value;
 }
 <!DOCTYPE html>
 <html lang="de">
@@ -66,12 +76,10 @@
 <ol>
        @for (SimpleStepNode slideNode:slides) {
          @{
-           Object titleProperty=slideNode.property("title");
-           String title="?";
+           String title=getProperty(slideNode,"title");
+           String name=getProperty(slideNode,"name");
            SlideNode slide=null;
            File slideFile=null;
-           if (titleProperty!=null)
-             title=titleProperty.toString();
            if (slideNode instanceof SlideNode) {
              try {
                slide=(SlideNode) slideNode;
@@ -82,7 +90,7 @@
              }
            }
          }
-  <li>@(title)
+  <li>@(title) / @(name)
          @if (error) {
     @showError(error)
         } else {
@@ -90,7 +98,7 @@
   <img src='file://@(slideFile.getAbsolutePath())'/>
           }
         }
-        <pre>@(slideNode.property("text"))</pre>
+        <pre>@(getProperty(slideNode,"text"))</pre>
   </li>
       }
 </ol>
