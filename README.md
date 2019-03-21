@@ -37,6 +37,7 @@ mvn install
 * Icons by FatCow http://www.softicons.com/toolbar-icons/fatcow-hosting-icons-by-fatcow
 * Plugin Framework for Java (PF4J) https://github.com/pf4j/pf4j
 # Version History
-| Version | date       |  changes 
+| Version | date       |  changes
 | ------: | ---------- | ------------------------
 |   0.0.1 | 2018-12-03 | Basic drag & drop functionality
+|   0.0.2 | 2019-03-21 | adds more simplegraph modules as default
