@@ -1,0 +1,101 @@
+@// Rythm template
+@// you can try me out at http://fiddle.rythmengine.com
+@// Created by Wolfgang Fahl, BITPlan GmbH,  2018-12-06@
+@import com.bitplan.dragtop.DropTarget
+@import com.bitplan.dragtop.DragItem
+@import org.apache.tinkerpop.gremlin.structure.Graph
+@import com.bitplan.simplegraph.powerpoint.PowerPointSystem
+@import com.bitplan.simplegraph.powerpoint.SlideNode
+@import com.bitplan.simplegraph.core.SimpleStepNode
+@import java.util.stream.Collectors
+@args() {
+  DropTarget dropTarget,
+  Graph graph;
+}
+@{
+  PowerPointSystem pps=null;
+  Throwable error=null;
+  try {
+    pps=new PowerPointSystem();
+    pps.connect();
+  } catch (Throwable th) {
+    error=th;
+  }
+}
+@// error handling - get a stack trace
+@def String getStackTrace (Throwable t) {
+  StringWriter sw = new StringWriter();
+  t.printStackTrace(new PrintWriter(sw));
+  return sw.toString();
+}
+@def showError(Throwable error) {
+<h3 style="color:red">Error @(error.getClass().getName()): @(error.getMessage())</h3>
+<pre>
+@getStackTrace(error)
+</pre>
+}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+</head>
+<body>
+@if (error) {
+  @showError(error)
+} else {
+  @for(DragItem dragItem:dropTarget.getDragItems()) {
+    @{
+      Object item=dragItem.getItem();
+      int index=0;
+      File file=null;
+      SimpleStepNode slideShowNode=null;
+      List<SimpleStepNode> slides=null;
+      if (item instanceof File) {
+        file=(File) item;
+        if (file.getName().contains(".ppt")) {
+          slideShowNode = (SimpleStepNode) pps.moveTo(file.getPath());
+          slides = slideShowNode.out("slides")
+          .collect(Collectors.toCollection(ArrayList::new));
+        } else {
+          file=null;
+        }
+      }
+    }
+    @if (file) {
+<h3>@(file.getName())</h3>
+<ol>
+       @for (SimpleStepNode slideNode:slides) {
+         @{
+           Object titleProperty=slideNode.property("title");
+           String title="?";
+           SlideNode slide=null;
+           File slideFile=null;
+           if (titleProperty!=null)
+             title=titleProperty.toString();
+           if (slideNode instanceof SlideNode) {
+             try {
+               slide=(SlideNode) slideNode;
+               slideFile=new File("/tmp/"+file.getName()+""+index++);
+               slide.outputSlideAsImage(slideFile,1.0,false);
+             } catch (Throwable th) {
+               error=th;
+             }
+           }
+         }
+  <li>@(title)
+         @if (error) {
+    @showError(error)
+        } else {
+          @if (slideFile) {
+  <img src='file://@(slideFile.getAbsolutePath())'/>
+          }
+        }
+        <pre>@(slideNode.property("text"))</pre>
+  </li>
+      }
+</ol>
+    }
+  }
+}
+</body>
+</html>
