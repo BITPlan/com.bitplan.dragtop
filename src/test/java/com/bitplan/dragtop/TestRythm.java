@@ -77,6 +77,6 @@ public class TestRythm {
           .moveTo("Cologne");
     SSLWiki wiki=mws.getWiki();      
     List<Im> images=wiki.getImagesOnPage("Cologne",200);
-    assertEquals(110,images.size());
+    assertEquals(109,images.size());
   }
 }
