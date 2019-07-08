@@ -3,6 +3,7 @@
 
 [![Travis (.org)](https://img.shields.io/travis/BITPlan/com.bitplan.dragtop.svg)](https://travis-ci.org/BITPlan/com.bitplan.dragtop)
 [![Maven Central](https://img.shields.io/maven-central/v/com.bitplan.dragtop/com.bitplan.dragtop.svg)](https://search.maven.org/artifact/com.bitplan.dragtop/com.bitplan.dragtop/0.0.2/jar)
+[![codecov](https://codecov.io/gh/BITPlan/com.bitplan.dragtop/branch/master/graph/badge.svg)](https://codecov.io/gh/BITPlan/com.bitplan.dragtop)
 [![GitHub issues](https://img.shields.io/github/issues/BITPlan/com.bitplan.dragtop.svg)](https://github.com/BITPlan/com.bitplan.dragtop/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/BITPlan/com.bitplan.dragtop.svg)](https://github.com/BITPlan/com.bitplan.dragtop/issues/?q=is%3Aissue+is%3Aclosed)
 [![GitHub](https://img.shields.io/github/license/BITPlan/com.bitplan.dragtop.svg)](https://www.apache.org/licenses/LICENSE-2.0)
