@@ -23,7 +23,7 @@
 		<!-- activate createAssembly -->
 		<assemblyMainClass>com.bitplan.dragtop.DragTop</assemblyMainClass>
 		<!-- versions of other libraries to be used -->
-		<pf4j.version>2.4.0</pf4j.version>
+		<pf4j.version>3.14.1</pf4j.version>
 		<!-- Gremlin/Tinkerpop -->
 		<tinkerpop.version>3.3.1</tinkerpop.version>
 	</properties>
